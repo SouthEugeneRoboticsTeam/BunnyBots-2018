@@ -1,6 +1,7 @@
 package org.sert2521.bunnybots
 
 import edu.wpi.first.wpilibj.CameraServer
+import org.sert2521.bunnybots.autonomous.driveStraightAuto
 import org.sert2521.bunnybots.drivetrain.Drivetrain
 import org.sert2521.bunnybots.util.UDPServer
 import org.sert2521.bunnybots.util.initPreferences
@@ -17,4 +18,6 @@ class RobotName : Robot() {
         initPreferences()
         logTelemetry()
     }
+
+    override fun onAutoStart() = driveStraightAuto.launch()
 }
