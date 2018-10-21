@@ -1,6 +1,7 @@
 package org.sert2521.bunnybots.autonomous
 
 import edu.wpi.first.networktables.EntryListenerFlags
+import edu.wpi.first.networktables.EntryNotification
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
@@ -22,26 +23,32 @@ object AutoChooser {
     private val cacheFile = File("/home/lvuser/autonomi.json")
 
     init {
-        NetworkTableInstance.getDefault()
-                .getTable("PathVisualizer")
-                .getEntry("Autonomi").addListener({ event ->
-                                                      val json = event.value.string
-                                                      if (!json.isEmpty()) {
-                                                          val t = measureTimeFPGA {
-                                                              autonomi =
-                                                                      Autonomi.fromJsonString(json)
-                                                          }
-                                                          println("Loaded autonomi in $t seconds")
+        val handler = { event: EntryNotification ->
+            val json = event.value.string
+            if (!json.isEmpty()) {
+                val t = measureTimeFPGA {
+                    autonomi =
+                            Autonomi.fromJsonString(json)
+                }
+                println("Loaded autonomi in $t seconds")
 
-                                                          cacheFile.writeText(json)
-                                                          println("New autonomi written to cache")
-                                                      } else {
-                                                          autonomi = Autonomi()
-                                                          DriverStation.reportWarning("Empty autonomi received from network tables",
-                                                                                      false)
-                                                      }
-                                                  },
-                                                  EntryListenerFlags.kImmediate or EntryListenerFlags.kNew or EntryListenerFlags.kUpdate)
+                cacheFile.writeText(json)
+                println("New autonomi written to cache")
+            } else {
+                autonomi = Autonomi()
+                DriverStation.reportWarning("Empty autonomi received from network tables",
+                                            false)
+            }
+        }
+
+        val flags = EntryListenerFlags.kImmediate or
+                EntryListenerFlags.kNew or
+                EntryListenerFlags.kUpdate
+
+        NetworkTableInstance.getDefault()
+            .getTable("PathVisualizer")
+            .getEntry("Autonomi")
+            .addListener(handler, flags)
     }
 
     private val sideChooser = SendableChooser<Side>().apply {

@@ -225,9 +225,9 @@ object Drivetrain : Subsystem() {
                         (RIGHT_FEED_FORWARD_OFFSET * signum(rightVelocity)) - velocityDelta
 
                 leftDrive.set(ControlMode.Position, leftDistance * ENCODER_TICKS_PER_METER,
-                              DemandType.ArbitraryFeedForward, leftFeedForward)
+                    DemandType.ArbitraryFeedForward, leftFeedForward)
                 rightDrive.set(ControlMode.Position, rightDistance * ENCODER_TICKS_PER_METER,
-                               DemandType.ArbitraryFeedForward, rightFeedForward)
+                    DemandType.ArbitraryFeedForward, rightFeedForward)
 
                 if (leftDrive.motorOutputPercent > 0.95) {
                     DriverStation.reportWarning("Left motor is saturated", false)
