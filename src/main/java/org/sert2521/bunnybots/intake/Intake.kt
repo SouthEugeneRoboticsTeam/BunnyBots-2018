@@ -11,7 +11,6 @@ object Intake : Subsystem() {
     val motor = Talon(0)
     val switch = DigitalInput(0)
 
-    override fun onTeleopStart() {
-        IntakeControl().start()
-    }
+    override val defaultCommand
+        get() = IntakeControl()
 }
