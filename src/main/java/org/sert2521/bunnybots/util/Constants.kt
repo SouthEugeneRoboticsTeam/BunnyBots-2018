@@ -10,6 +10,7 @@ const val LEFT_REAR_MOTOR = -1
 const val RIGHT_FRONT_MOTOR = -1
 const val RIGHT_REAR_MOTOR = -1
 const val INTAKE_MOTOR = -1
+const val ARM_MOTOR = -1
 
 // Auto
 // TODO: Update these with real values
