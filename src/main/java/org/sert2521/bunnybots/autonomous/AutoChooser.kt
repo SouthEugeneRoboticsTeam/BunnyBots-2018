@@ -25,10 +25,10 @@ object AutoChooser {
     init {
         val handler = { event: EntryNotification ->
             val json = event.value.string
+            println("Got JSON: $json")
             if (!json.isEmpty()) {
                 val t = measureTimeFPGA {
-                    autonomi =
-                            Autonomi.fromJsonString(json)
+                    autonomi = Autonomi.fromJsonString(json)
                 }
                 println("Loaded autonomi in $t seconds")
 
@@ -62,7 +62,7 @@ val driveStraightAuto = Command("Drive Straight", Drivetrain) {
     val auto = autonomi["Tests"]
     auto.isMirrored = false
     try {
-        Drivetrain.driveAlongPath(auto["4 Foot Straight"])
+        Drivetrain.driveAlongPath(auto["8 Foot Straight"])
     } finally {
         println("Done following path")
     }

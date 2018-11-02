@@ -22,6 +22,11 @@ fun initPreferences() {
     Preferences.getInstance().putDouble("normal_eject_speed_scalar", normalEjectSpeedScalar)
     Preferences.getInstance().putDouble("fast_eject_speed_scalar", fastEjectSpeedScalar)
     Preferences.getInstance().putDouble("drive_speed_scalar", driveSpeedScalar)
+
+    SmartDashboard.putNumber("Drive kP", SmartDashboard.getNumber("Drive kP", 1.0))
+    SmartDashboard.putNumber("Drive kD", SmartDashboard.getNumber("Drive kD", 0.0))
+    SmartDashboard.setPersistent("Drive kP")
+    SmartDashboard.setPersistent("Drive kD")
 }
 
 fun logTelemetry() {

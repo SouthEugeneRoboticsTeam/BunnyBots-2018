@@ -10,12 +10,13 @@ import edu.wpi.first.wpilibj.I2C
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.drive.DifferentialDrive
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
-import org.sert2521.bunnybots.drivetrain.commands.TeleopDrive
 import org.sert2521.bunnybots.util.ENCODER_TICKS_PER_METER
+import org.sert2521.bunnybots.util.ENCODER_TICKS_PER_REVOLUTION
 import org.sert2521.bunnybots.util.LEFT_FRONT_MOTOR
 import org.sert2521.bunnybots.util.LEFT_REAR_MOTOR
 import org.sert2521.bunnybots.util.RIGHT_FRONT_MOTOR
 import org.sert2521.bunnybots.util.RIGHT_REAR_MOTOR
+import org.sert2521.bunnybots.util.WHEEL_DIAMETER
 import org.sertain.command.Subsystem
 import org.sertain.hardware.Talon
 import org.sertain.hardware.autoBreak
@@ -24,6 +25,7 @@ import org.sertain.hardware.plus
 import org.sertain.hardware.setEncoderPosition
 import org.sertain.hardware.setSelectedSensor
 import org.team2471.frc.lib.control.experimental.periodic
+import org.team2471.frc.lib.control.experimental.suspendUntil
 import org.team2471.frc.lib.math.windRelativeAngles
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
@@ -53,8 +55,17 @@ object Drivetrain : Subsystem() {
 
     private val table = NetworkTableInstance.getDefault().getTable("Drivetrain")
 
+    private fun ticksToFeet(ticks: Int) =
+            ticks.toDouble() / ENCODER_TICKS_PER_REVOLUTION * WHEEL_DIAMETER * Math.PI / 12.0
+
+    private fun feetToTicks(feet: Double) =
+            feet * 12.0 / Math.PI / WHEEL_DIAMETER * ENCODER_TICKS_PER_REVOLUTION
+
     val leftPosition get() = leftDrive.getEncoderPosition()
     val rightPosition get() = rightDrive.getEncoderPosition()
+
+    val leftDistance get() = ticksToFeet(leftPosition)
+    val rightDistance get() = ticksToFeet(rightPosition)
 
     private val leftDrive =
             Talon(LEFT_FRONT_MOTOR).autoBreak() + Talon(LEFT_REAR_MOTOR).autoBreak()
@@ -62,21 +73,30 @@ object Drivetrain : Subsystem() {
             Talon(RIGHT_FRONT_MOTOR).autoBreak() + Talon(RIGHT_REAR_MOTOR).autoBreak()
     private val drive = DifferentialDrive(leftDrive, rightDrive)
 
-    override val defaultCommand = TeleopDrive()
+//    override val defaultCommand = TeleopDrive()
 
     override fun onCreate() {
         leftDrive.setSelectedSensor(FeedbackDevice.QuadEncoder)
         rightDrive.setSelectedSensor(FeedbackDevice.QuadEncoder)
 
+        leftDrive.inverted = false
+        rightDrive.inverted = false
+
         leftDrive.setSensorPhase(true)
+        rightDrive.setSensorPhase(true)
 
-        leftDrive.config_kP(0, SmartDashboard.getNumber("Drive kP", 0.0), 0)
-        leftDrive.config_kI(0, SmartDashboard.getNumber("Drive kI", 0.0), 0)
-        leftDrive.config_kD(0, SmartDashboard.getNumber("Drive kD", 0.0), 0)
+        leftDrive.configAllowableClosedloopError(0, 100, 0)
+        rightDrive.configAllowableClosedloopError(0, 100, 0)
 
-        rightDrive.config_kP(0, SmartDashboard.getNumber("Drive kP", 0.0), 0)
-        rightDrive.config_kI(0, SmartDashboard.getNumber("Drive kI", 0.0), 0)
-        rightDrive.config_kD(0, SmartDashboard.getNumber("Drive kD", 0.0), 0)
+        leftDrive.config_kF(0, 0.0, 0)
+        leftDrive.config_kP(0, 0.0, 0)
+        leftDrive.config_kI(0, 0.0, 0)
+        leftDrive.config_kD(0, 0.0, 0)
+
+        rightDrive.config_kF(0, 0.0, 0)
+        rightDrive.config_kP(0, 0.0, 0)
+        rightDrive.config_kI(0, 0.0, 0)
+        rightDrive.config_kD(0, 0.0, 0)
     }
 
     override fun onStart() {
@@ -84,6 +104,10 @@ object Drivetrain : Subsystem() {
 
         angles.clear()
         angles.addAll(generateSequence(0.0) { it + 1 }.take(50))
+    }
+
+    override fun onAutoStart() {
+        reset()
     }
 
     override fun execute() {
@@ -96,6 +120,14 @@ object Drivetrain : Subsystem() {
 
     override fun executeAuto() {
         updateStoredAngles()
+
+//        rightDrive.set(0.8)
+
+//        drivePosition(10*4096.0, 10*4096.0)
+        println("${leftDrive.motorOutputPercent}, ${rightDrive.motorOutputPercent}")
+        println("${leftDrive.getClosedLoopTarget(0)}, ${leftDrive.getClosedLoopError(0)}")
+        println("${rightDrive.getClosedLoopTarget(0)}, ${rightDrive.getClosedLoopError(0)}")
+        println("-----------")
     }
 
     override fun executeTeleop() {
@@ -135,6 +167,9 @@ object Drivetrain : Subsystem() {
     }
 
     suspend fun driveDistance(distance: Double, time: Double, suspend: Boolean = true) {
+        leftDrive.selectProfileSlot(0, 0)
+        rightDrive.selectProfileSlot(0, 0)
+
         val curve = MotionCurve().apply {
             storeValue(0.0, 0.0)
             storeValue(time, distance)
@@ -148,7 +183,15 @@ object Drivetrain : Subsystem() {
                 val t = timer.get()
                 val v = curve.getValue(t)
 
-                drivePosition(v, v)
+                println("$t, $v, $leftDistance, ${feetToTicks(v)}, $leftPosition")
+
+                drivePosition(feetToTicks(v), feetToTicks(v))
+            }
+
+            if (suspend) {
+                suspendUntil {
+                    Math.abs(leftDistance - distance) < 0.1 && Math.abs(rightDistance - distance) < 0.1
+                }
             }
         } finally {
             drive.stopMotor()
@@ -205,7 +248,7 @@ object Drivetrain : Subsystem() {
                 val leftVelocity = (leftDistance - prevLeftDistance) / dt
                 val rightVelocity = (rightDistance - prevRightDistance) / dt
 
-                val leftVelocityError = leftDrive.getSelectedSensorVelocity(0) + leftVelocity
+                val leftVelocityError = leftDrive.getSelectedSensorVelocity(0) - leftVelocity
                 val rightVelocityError = rightDrive.getSelectedSensorVelocity(0) - rightVelocity
 
                 val velocityDelta = (leftVelocity - rightVelocity) * TURNING_FEED_FORWARD
@@ -224,9 +267,9 @@ object Drivetrain : Subsystem() {
                 val rightFeedForward = rightVelocity * RIGHT_FEED_FORWARD_COEFFICIENT +
                         (RIGHT_FEED_FORWARD_OFFSET * signum(rightVelocity)) - velocityDelta
 
-                leftDrive.set(ControlMode.Position, leftDistance * ENCODER_TICKS_PER_METER,
+                leftDrive.set(ControlMode.Position, feetToTicks(leftDistance),
                     DemandType.ArbitraryFeedForward, leftFeedForward)
-                rightDrive.set(ControlMode.Position, rightDistance * ENCODER_TICKS_PER_METER,
+                rightDrive.set(ControlMode.Position, feetToTicks(rightDistance),
                     DemandType.ArbitraryFeedForward, rightFeedForward)
 
                 if (leftDrive.motorOutputPercent > 0.95) {
@@ -265,5 +308,38 @@ object Drivetrain : Subsystem() {
     private fun logTank(left: Double, right: Double) {
         SmartDashboard.putNumber("Drivetrain Left Speed", left)
         SmartDashboard.putNumber("Drivetrain Right Speed", right)
+    }
+
+    init {
+//        val pEntry = table.getEntry("Drive kP")
+//        val dEntry = table.getEntry("Drive kD")
+//
+//        if (!pEntry.value.isValid || !dEntry.value.isValid) {
+//            pEntry.setDouble(0.0)
+//            dEntry.setDouble(0.0)
+//        }
+//
+//        pEntry.setPersistent()
+//        dEntry.setPersistent()
+//
+//        leftDrive.config_kP(0, pEntry.value.double, 0)
+//        rightDrive.config_kP(0, pEntry.value.double, 0)
+//
+//        leftDrive.config_kI(0, 0.0, 0)
+//        rightDrive.config_kI(0, 0.0, 0)
+//
+//        leftDrive.config_kD(0, dEntry.value.double, 0)
+//        rightDrive.config_kD(0, dEntry.value.double, 0)
+//
+//        pEntry.addListener({ event ->
+//            println("Updating kP to -> ${event.value.double}")
+//            leftDrive.config_kP(0, event.value.double, 0)
+//            rightDrive.config_kP(0, event.value.double, 0)
+//        }, EntryListenerFlags.kUpdate)
+//        dEntry.addListener({ event ->
+//            println("Updating kD to -> ${event.value.double}")
+//            leftDrive.config_kD(0, event.value.double, 0)
+//            rightDrive.config_kD(0, event.value.double, 0)
+//        }, EntryListenerFlags.kUpdate)
     }
 }
