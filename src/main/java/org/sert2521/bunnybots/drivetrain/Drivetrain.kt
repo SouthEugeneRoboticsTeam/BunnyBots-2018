@@ -4,28 +4,35 @@ import com.ctre.phoenix.motorcontrol.ControlMode
 import com.ctre.phoenix.motorcontrol.DemandType
 import com.ctre.phoenix.motorcontrol.FeedbackDevice
 import com.kauailabs.navx.frc.AHRS
-import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.I2C
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.drive.DifferentialDrive
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
+import kotlinx.coroutines.launch
 import org.sert2521.bunnybots.util.ENCODER_TICKS_PER_METER
 import org.sert2521.bunnybots.util.ENCODER_TICKS_PER_REVOLUTION
 import org.sert2521.bunnybots.util.LEFT_FRONT_MOTOR
 import org.sert2521.bunnybots.util.LEFT_REAR_MOTOR
+import org.sert2521.bunnybots.util.PositionEstimator
 import org.sert2521.bunnybots.util.RIGHT_FRONT_MOTOR
 import org.sert2521.bunnybots.util.RIGHT_REAR_MOTOR
+import org.sert2521.bunnybots.util.Telemetry
 import org.sert2521.bunnybots.util.WHEEL_DIAMETER
-import org.sertain.command.Subsystem
 import org.sertain.hardware.Talon
 import org.sertain.hardware.autoBreak
 import org.sertain.hardware.getEncoderPosition
+import org.sertain.hardware.getEncoderVelocity
+import org.sertain.hardware.invert
 import org.sertain.hardware.plus
 import org.sertain.hardware.setEncoderPosition
 import org.sertain.hardware.setSelectedSensor
-import org.team2471.frc.lib.control.experimental.periodic
-import org.team2471.frc.lib.control.experimental.suspendUntil
+import org.team2471.frc.lib.coroutines.MeanlibScope
+import org.team2471.frc.lib.coroutines.loop
+import org.team2471.frc.lib.coroutines.periodic
+import org.team2471.frc.lib.coroutines.suspendUntil
+import org.team2471.frc.lib.framework.Subsystem
+import org.team2471.frc.lib.math.Point
 import org.team2471.frc.lib.math.windRelativeAngles
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
@@ -33,27 +40,15 @@ import org.team2471.frc.lib.vector.Vector2
 import java.lang.Math.signum
 import java.lang.Math.toDegrees
 
-private const val GYRO_CORRECTION_P = 0.025 * 0.75
-private const val GYRO_CORRECTION_I = 0.002 * 0.5
-private const val GYRO_CORRECTION_I_DECAY = 1.0
-
-private const val LEFT_FEED_FORWARD_COEFFICIENT = 0.070541988198899
-private const val LEFT_FEED_FORWARD_OFFSET = 0.021428882425651
-
-private const val RIGHT_FEED_FORWARD_COEFFICIENT = 0.071704891069425
-private const val RIGHT_FEED_FORWARD_OFFSET = 0.020459379452296
-
-private const val TURNING_FEED_FORWARD = 0.0324
-
 /**
- * The robot's primary drive base.
+ * The robot's drive system.
  */
-object Drivetrain : Subsystem() {
+object Drivetrain : Subsystem("Drivetrain") {
+    private val telemetry = Telemetry(this)
+
     val ahrs = AHRS(I2C.Port.kMXP)
     val isNavxBroken get() = angles.all { it == angles.first() }
     private val angles = mutableListOf<Double>()
-
-    private val table = NetworkTableInstance.getDefault().getTable("Drivetrain")
 
     private fun ticksToFeet(ticks: Int) =
             ticks.toDouble() / ENCODER_TICKS_PER_REVOLUTION * WHEEL_DIAMETER * Math.PI / 12.0
@@ -61,26 +56,24 @@ object Drivetrain : Subsystem() {
     private fun feetToTicks(feet: Double) =
             feet * 12.0 / Math.PI / WHEEL_DIAMETER * ENCODER_TICKS_PER_REVOLUTION
 
-    val leftPosition get() = leftDrive.getEncoderPosition()
-    val rightPosition get() = rightDrive.getEncoderPosition()
+    private val leftPosition get() = leftDrive.getEncoderPosition()
+    private val rightPosition get() = rightDrive.getEncoderPosition()
 
-    val leftDistance get() = ticksToFeet(leftPosition)
-    val rightDistance get() = ticksToFeet(rightPosition)
+    private val leftDistance get() = ticksToFeet(leftPosition)
+    private val rightDistance get() = ticksToFeet(rightPosition)
 
-    private val leftDrive =
+    internal val leftDrive =
             Talon(LEFT_FRONT_MOTOR).autoBreak() + Talon(LEFT_REAR_MOTOR).autoBreak()
-    private val rightDrive =
-            Talon(RIGHT_FRONT_MOTOR).autoBreak() + Talon(RIGHT_REAR_MOTOR).autoBreak()
+    internal val rightDrive =
+            Talon(RIGHT_FRONT_MOTOR).autoBreak().invert(true) + Talon(RIGHT_REAR_MOTOR).autoBreak().invert(true)
     private val drive = DifferentialDrive(leftDrive, rightDrive)
 
-//    override val defaultCommand = TeleopDrive()
+    private val positionEstimator = PositionEstimator(Point(0.0, 0.0), 0.0)
+    val estimatedPosition get() = positionEstimator.position
 
-    override fun onCreate() {
+    init {
         leftDrive.setSelectedSensor(FeedbackDevice.QuadEncoder)
         rightDrive.setSelectedSensor(FeedbackDevice.QuadEncoder)
-
-        leftDrive.inverted = false
-        rightDrive.inverted = false
 
         leftDrive.setSensorPhase(true)
         rightDrive.setSensorPhase(true)
@@ -89,54 +82,41 @@ object Drivetrain : Subsystem() {
         rightDrive.configAllowableClosedloopError(0, 100, 0)
 
         leftDrive.config_kF(0, 0.0, 0)
-        leftDrive.config_kP(0, 0.0, 0)
+        leftDrive.config_kP(0, 0.45, 0)
         leftDrive.config_kI(0, 0.0, 0)
-        leftDrive.config_kD(0, 0.0, 0)
+        leftDrive.config_kD(0, 0.35, 0)
 
         rightDrive.config_kF(0, 0.0, 0)
-        rightDrive.config_kP(0, 0.0, 0)
+        rightDrive.config_kP(0, 0.45, 0)
         rightDrive.config_kI(0, 0.0, 0)
-        rightDrive.config_kD(0, 0.0, 0)
-    }
+        rightDrive.config_kD(0, 0.35, 0)
 
-    override fun onStart() {
+        telemetry.add("Left Encoder") { leftPosition }
+        telemetry.add("Right Encoder") { rightPosition }
+        telemetry.add("NavX Broken?") { isNavxBroken }
+
         reset()
-
-        angles.clear()
-        angles.addAll(generateSequence(0.0) { it + 1 }.take(50))
-    }
-
-    override fun onAutoStart() {
-        reset()
-    }
-
-    override fun execute() {
-        SmartDashboard.putNumber("Drivetrain Left Position", leftPosition.toDouble())
-        SmartDashboard.putNumber("Drivetrain Right Position", rightPosition.toDouble())
-        SmartDashboard.putNumber("Drivetrain Pitch", ahrs.pitch.toDouble())
-        SmartDashboard.putNumber("Drivetrain Roll", ahrs.roll.toDouble())
-        SmartDashboard.putData("AHRS", ahrs)
-    }
-
-    override fun executeAuto() {
-        updateStoredAngles()
-
-//        rightDrive.set(0.8)
-
-//        drivePosition(10*4096.0, 10*4096.0)
-        println("${leftDrive.motorOutputPercent}, ${rightDrive.motorOutputPercent}")
-        println("${leftDrive.getClosedLoopTarget(0)}, ${leftDrive.getClosedLoopError(0)}")
-        println("${rightDrive.getClosedLoopTarget(0)}, ${rightDrive.getClosedLoopError(0)}")
-        println("-----------")
-    }
-
-    override fun executeTeleop() {
-        updateStoredAngles()
+        MeanlibScope.launch {
+            loop {
+                updateStoredAngles()
+                updateLocalization()
+            }
+        }
     }
 
     private fun updateStoredAngles() {
         angles.removeAt(0)
         angles.add(ahrs.angle)
+    }
+
+    private fun updateLocalization() {
+        positionEstimator.updatePosition(
+                ticksToFeet(leftDrive.getEncoderVelocity()),
+                ticksToFeet(rightDrive.getEncoderVelocity()),
+                ahrs.angle
+        )
+
+        println(estimatedPosition)
     }
 
     fun reset() {
@@ -145,26 +125,14 @@ object Drivetrain : Subsystem() {
         ahrs.reset()
     }
 
-    fun arcade(speed: Double, rotation: Double) {
-        logArcade(speed, rotation)
-        drive.arcadeDrive(speed, rotation)
-    }
+    fun driveRaw(left: Double, right: Double) = drive.tankDrive(left, right, false)
 
-    fun curvature(speed: Double, rotation: Double, quickTurn: Boolean) {
-        logArcade(speed, rotation, quickTurn)
-        drive.curvatureDrive(speed, rotation, quickTurn)
-    }
+    fun tank(left: Double, right: Double) = drive.tankDrive(left, -right)
 
-    fun tank(left: Double, right: Double) {
-        logTank(left, right)
-        drive.tankDrive(left, -right)
-    }
+    fun arcade(speed: Double, rotation: Double) = drive.arcadeDrive(speed, rotation)
 
-    fun drive(left: Double, right: Double) {
-        logTank(left, right)
-        leftDrive.set(left)
-        rightDrive.set(-right)
-    }
+    fun curvature(speed: Double, rotation: Double, quickTurn: Boolean) =
+            drive.curvatureDrive(speed, rotation, quickTurn)
 
     suspend fun driveDistance(distance: Double, time: Double, suspend: Boolean = true) {
         leftDrive.selectProfileSlot(0, 0)
@@ -179,13 +147,15 @@ object Drivetrain : Subsystem() {
             reset()
 
             val timer = Timer().apply { start() }
-            periodic(condition = { timer.get() <= time }) {
+            periodic {
                 val t = timer.get()
                 val v = curve.getValue(t)
 
                 println("$t, $v, $leftDistance, ${feetToTicks(v)}, $leftPosition")
 
                 drivePosition(feetToTicks(v), feetToTicks(v))
+
+                timer.get() >= time
             }
 
             if (suspend) {
@@ -211,22 +181,25 @@ object Drivetrain : Subsystem() {
         var prevRightVelocity = 0.0
         var prevTime = 0.0
 
-        val pathAngleEntry = table.getEntry("Path Angle")
-        val angleErrorEntry = table.getEntry("Angle Error")
-        val gyroCorrectionEntry = table.getEntry("Gryo Correction")
+        val pathAngleEntry = telemetry.table.getEntry("Path Angle")
+        val angleErrorEntry = telemetry.table.getEntry("Angle Error")
+        val gyroCorrectionEntry = telemetry.table.getEntry("Gyro Correction")
 
-        val leftPositionErrorEntry = table.getEntry("Left Position Error")
-        val rightPositionErrorEntry = table.getEntry("Right Position Error")
+        val leftPositionErrorEntry = telemetry.table.getEntry("Left Position Error")
+        val rightPositionErrorEntry = telemetry.table.getEntry("Right Position Error")
 
-        val leftVelocityErrorEntry = table.getEntry("Left Velocity Error")
-        val rightVelocityErrorEntry = table.getEntry("Right Velocity Error")
+        val leftVelocityErrorEntry = telemetry.table.getEntry("Left Velocity Error")
+        val rightVelocityErrorEntry = telemetry.table.getEntry("Right Velocity Error")
+
+        val leftPositionEntry = telemetry.table.getEntry("Left Position")
+        val rightPositionEntry = telemetry.table.getEntry("Right Position")
 
         val timer = Timer().apply { start() }
 
         var angleErrorAccumulator = 0.0
-        var finished = false
+        var finished: Boolean
         try {
-            periodic(condition = { !finished }) {
+            periodic {
                 val t = timer.get()
                 val dt = t - prevTime
 
@@ -259,6 +232,8 @@ object Drivetrain : Subsystem() {
                 rightPositionErrorEntry.setDouble(rightDrive.getClosedLoopError(0) / ENCODER_TICKS_PER_METER)
                 leftVelocityErrorEntry.setDouble(leftVelocityError)
                 rightVelocityErrorEntry.setDouble(rightVelocityError)
+                leftPositionEntry.setDouble(leftDistance)
+                rightPositionEntry.setDouble(rightDistance)
                 gyroCorrectionEntry.setDouble(gyroCorrection)
 
                 val leftFeedForward = leftVelocity * LEFT_FEED_FORWARD_COEFFICIENT +
@@ -266,6 +241,8 @@ object Drivetrain : Subsystem() {
 
                 val rightFeedForward = rightVelocity * RIGHT_FEED_FORWARD_COEFFICIENT +
                         (RIGHT_FEED_FORWARD_OFFSET * signum(rightVelocity)) - velocityDelta
+
+                println("Gyro Correction: $gyroCorrection, Left FF: $leftFeedForward, Right FF: $rightFeedForward")
 
                 leftDrive.set(ControlMode.Position, feetToTicks(leftDistance),
                     DemandType.ArbitraryFeedForward, leftFeedForward)
@@ -286,6 +263,8 @@ object Drivetrain : Subsystem() {
                 prevRightDistance = rightDistance
                 prevLeftVelocity = leftVelocity
                 prevRightVelocity = rightVelocity
+
+                finished
             }
         } finally {
             drive.stopMotor()
@@ -299,47 +278,7 @@ object Drivetrain : Subsystem() {
 
     fun stop() = drive.stopMotor()
 
-    private fun logArcade(speed: Double, rotation: Double, quickTurn: Boolean? = null) {
-        SmartDashboard.putNumber("Drivetrain Speed", speed)
-        SmartDashboard.putNumber("Drivetrain Rotation", rotation)
-        quickTurn?.let { SmartDashboard.putBoolean("Drivetrain Quick Turn", it) }
-    }
-
-    private fun logTank(left: Double, right: Double) {
-        SmartDashboard.putNumber("Drivetrain Left Speed", left)
-        SmartDashboard.putNumber("Drivetrain Right Speed", right)
-    }
-
     init {
-//        val pEntry = table.getEntry("Drive kP")
-//        val dEntry = table.getEntry("Drive kD")
-//
-//        if (!pEntry.value.isValid || !dEntry.value.isValid) {
-//            pEntry.setDouble(0.0)
-//            dEntry.setDouble(0.0)
-//        }
-//
-//        pEntry.setPersistent()
-//        dEntry.setPersistent()
-//
-//        leftDrive.config_kP(0, pEntry.value.double, 0)
-//        rightDrive.config_kP(0, pEntry.value.double, 0)
-//
-//        leftDrive.config_kI(0, 0.0, 0)
-//        rightDrive.config_kI(0, 0.0, 0)
-//
-//        leftDrive.config_kD(0, dEntry.value.double, 0)
-//        rightDrive.config_kD(0, dEntry.value.double, 0)
-//
-//        pEntry.addListener({ event ->
-//            println("Updating kP to -> ${event.value.double}")
-//            leftDrive.config_kP(0, event.value.double, 0)
-//            rightDrive.config_kP(0, event.value.double, 0)
-//        }, EntryListenerFlags.kUpdate)
-//        dEntry.addListener({ event ->
-//            println("Updating kD to -> ${event.value.double}")
-//            leftDrive.config_kD(0, event.value.double, 0)
-//            rightDrive.config_kD(0, event.value.double, 0)
-//        }, EntryListenerFlags.kUpdate)
+        drive.isSafetyEnabled = false
     }
 }

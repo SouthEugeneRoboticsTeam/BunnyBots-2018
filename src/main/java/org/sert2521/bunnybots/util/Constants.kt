@@ -12,7 +12,6 @@ const val RIGHT_REAR_MOTOR = 13
 const val ARM_MOTOR = 10
 
 // Auto
-// TODO: Update these with real values
 const val WHEEL_DIAMETER = 6
 const val WHEELBASE_WIDTH = 0.7
 const val ENCODER_TICKS_PER_REVOLUTION = 8192

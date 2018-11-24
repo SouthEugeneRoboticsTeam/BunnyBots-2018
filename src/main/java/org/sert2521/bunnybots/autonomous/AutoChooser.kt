@@ -6,7 +6,7 @@ import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import org.sert2521.bunnybots.drivetrain.Drivetrain
-import org.team2471.frc.lib.control.experimental.Command
+import org.team2471.frc.lib.framework.use
 import org.team2471.frc.lib.motion_profiling.Autonomi
 import org.team2471.frc.lib.util.measureTimeFPGA
 import java.io.File
@@ -23,6 +23,16 @@ object AutoChooser {
     private val cacheFile = File("/home/lvuser/autonomi.json")
 
     init {
+        try {
+            autonomi = Autonomi.fromJsonString(cacheFile.readText())
+            println("Autonomi cache loaded.")
+        } catch (_: Exception) {
+            DriverStation.reportError("Autonomi cache could not be found", false)
+            autonomi = Autonomi()
+        } finally {
+            println("Done dealing with cache...")
+        }
+
         val handler = { event: EntryNotification ->
             val json = event.value.string
             println("Got JSON: $json")
@@ -52,18 +62,21 @@ object AutoChooser {
     }
 
     private val sideChooser = SendableChooser<Side>().apply {
-        addDefault("Left", Side.LEFT)
-        addObject("Center", Side.CENTER)
-        addObject("Right", Side.RIGHT)
+        setDefaultOption("Left", Side.LEFT)
+        addOption("Center", Side.CENTER)
+        addOption("Right", Side.RIGHT)
     }
 }
 
-val driveStraightAuto = Command("Drive Straight", Drivetrain) {
-    val auto = autonomi["Tests"]
-    auto.isMirrored = false
-    try {
-        Drivetrain.driveAlongPath(auto["8 Foot Straight"])
-    } finally {
-        println("Done following path")
+suspend fun testAuto() {
+    use(Drivetrain) {
+        val auto = autonomi["BunnyBots"]
+        auto.isMirrored = false
+
+        try {
+            Drivetrain.driveAlongPath(auto["Pickup"])
+        } finally {
+            println("Done following path")
+        }
     }
 }
