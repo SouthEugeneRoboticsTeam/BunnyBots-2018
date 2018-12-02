@@ -5,7 +5,10 @@ import org.sert2521.bunnybots.autonomous.AutoChooser
 import org.sert2521.bunnybots.autonomous.auto
 import org.sert2521.bunnybots.drivetrain.Drivetrain
 import org.sert2521.bunnybots.drivetrain.teleopDrive
+import org.sert2521.bunnybots.dropper.Dropper
+import org.sert2521.bunnybots.dropper.resetDroppers
 import org.sert2521.bunnybots.util.UDPServer
+import org.sert2521.bunnybots.util.initControls
 import org.sert2521.bunnybots.util.initPreferences
 import org.sert2521.bunnybots.util.logBuildInfo
 import org.team2471.frc.lib.framework.RobotProgram
@@ -21,21 +24,29 @@ object Robot : RobotProgram {
 
         Drivetrain
         Arm
+        Dropper
 
         UDPServer.start()
 
+        initControls()
         initPreferences()
         logBuildInfo()
     }
 
-    private fun enableSubsystems() {
+    private suspend fun enableSubsystems() {
         Drivetrain.enable()
         Arm.enable()
+
+        initCommands()
     }
 
     private fun disableSubsystems() {
         Drivetrain.disable()
         Arm.disable()
+    }
+
+    private suspend fun initCommands() {
+        resetDroppers()
     }
 
     override suspend fun teleop() {
@@ -67,7 +78,7 @@ object Robot : RobotProgram {
         path.autonomous = auto
         path.robotDirection = Path2D.RobotDirection.BACKWARD
 
-        Drivetrain.driveAlongPath(path ?: Path2D(), 1.0)
+        Drivetrain.driveAlongPath(path, 1.0)
     }
 
     override suspend fun test() {

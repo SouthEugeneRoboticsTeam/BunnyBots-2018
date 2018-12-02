@@ -3,12 +3,10 @@ package org.sert2521.bunnybots.arm
 import com.ctre.phoenix.motorcontrol.ControlMode
 import com.ctre.phoenix.motorcontrol.DemandType
 import com.ctre.phoenix.motorcontrol.FeedbackDevice
-import org.sert2521.bunnybots.util.ARM_MOTOR
+import org.sert2521.bunnybots.ARM_MOTOR
 import org.sertain.hardware.Talon
 import org.team2471.frc.lib.framework.Subsystem
 import org.team2471.frc.lib.motion_profiling.MotionCurve
-
-private const val ARM_VELOCITY_FEED_FORWARD = 0.00005
 
 object Arm : Subsystem("Arm") {
     val armMotor = Talon(ARM_MOTOR).apply {

@@ -9,18 +9,16 @@ import edu.wpi.first.wpilibj.I2C
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.drive.DifferentialDrive
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
-import org.sert2521.bunnybots.util.ENCODER_TICKS_PER_REVOLUTION
-import org.sert2521.bunnybots.util.LEFT_FRONT_MOTOR
-import org.sert2521.bunnybots.util.LEFT_REAR_MOTOR
-import org.sert2521.bunnybots.util.PositionEstimator
-import org.sert2521.bunnybots.util.RIGHT_FRONT_MOTOR
-import org.sert2521.bunnybots.util.RIGHT_REAR_MOTOR
+import org.sert2521.bunnybots.ENCODER_TICKS_PER_REVOLUTION
+import org.sert2521.bunnybots.LEFT_FRONT_MOTOR
+import org.sert2521.bunnybots.LEFT_REAR_MOTOR
+import org.sert2521.bunnybots.RIGHT_FRONT_MOTOR
+import org.sert2521.bunnybots.RIGHT_REAR_MOTOR
+import org.sert2521.bunnybots.WHEEL_DIAMETER
 import org.sert2521.bunnybots.util.Telemetry
-import org.sert2521.bunnybots.util.WHEEL_DIAMETER
 import org.sertain.hardware.Talon
 import org.sertain.hardware.autoBreak
 import org.sertain.hardware.getEncoderPosition
-import org.sertain.hardware.getEncoderVelocity
 import org.sertain.hardware.invert
 import org.sertain.hardware.plus
 import org.sertain.hardware.setEncoderPosition
@@ -28,7 +26,6 @@ import org.sertain.hardware.setSelectedSensor
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.coroutines.suspendUntil
 import org.team2471.frc.lib.framework.Subsystem
-import org.team2471.frc.lib.math.Point
 import org.team2471.frc.lib.math.windRelativeAngles
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
@@ -61,9 +58,6 @@ object Drivetrain : Subsystem("Drivetrain") {
     private val rightDrive =
             Talon(RIGHT_FRONT_MOTOR).autoBreak().invert() + Talon(RIGHT_REAR_MOTOR).autoBreak().invert()
     private val drive = DifferentialDrive(leftDrive, rightDrive)
-
-    private val positionEstimator = PositionEstimator(Point(0.0, 0.0), 0.0)
-    val estimatedPosition get() = positionEstimator.position
 
     init {
         leftDrive.setSelectedSensor(FeedbackDevice.QuadEncoder)
@@ -103,14 +97,6 @@ object Drivetrain : Subsystem("Drivetrain") {
         drive.isSafetyEnabled = false
 
         reset()
-    }
-
-    private fun updateLocalization() {
-        positionEstimator.updatePosition(
-                ticksToFeet(leftDrive.getEncoderVelocity() * 10),
-                ticksToFeet(rightDrive.getEncoderVelocity() * 10),
-                ahrs.angle
-        )
     }
 
     fun reset() {
