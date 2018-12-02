@@ -1,8 +1,6 @@
 package org.sert2521.bunnybots.drivetrain
 
-import com.ctre.phoenix.motorcontrol.ControlMode
 import com.ctre.phoenix.motorcontrol.FeedbackDevice
-import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced
 import com.kauailabs.navx.frc.AHRS
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.I2C
@@ -17,11 +15,14 @@ import org.sert2521.bunnybots.RIGHT_REAR_MOTOR
 import org.sert2521.bunnybots.WHEEL_DIAMETER
 import org.sert2521.bunnybots.util.Telemetry
 import org.sertain.hardware.Talon
-import org.sertain.hardware.autoBreak
+import org.sertain.hardware.autoBrake
 import org.sertain.hardware.getEncoderPosition
 import org.sertain.hardware.invert
 import org.sertain.hardware.plus
 import org.sertain.hardware.setEncoderPosition
+import org.sertain.hardware.setPIDF
+import org.sertain.hardware.setPercent
+import org.sertain.hardware.setPosition
 import org.sertain.hardware.setSelectedSensor
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.coroutines.suspendUntil
@@ -53,19 +54,14 @@ object Drivetrain : Subsystem("Drivetrain") {
     private val leftDistance get() = ticksToFeet(leftPosition)
     private val rightDistance get() = ticksToFeet(rightPosition)
 
-    private val leftDrive = Talon(LEFT_FRONT_MOTOR).autoBreak() + Talon(LEFT_REAR_MOTOR).autoBreak()
+    private val leftDrive = Talon(LEFT_FRONT_MOTOR).autoBrake() + Talon(LEFT_REAR_MOTOR).autoBrake()
     private val rightDrive =
-            Talon(RIGHT_FRONT_MOTOR).autoBreak().invert() + Talon(RIGHT_REAR_MOTOR).autoBreak().invert()
+            Talon(RIGHT_FRONT_MOTOR).autoBrake().invert() + Talon(RIGHT_REAR_MOTOR).autoBrake().invert()
     private val drive = DifferentialDrive(leftDrive, rightDrive)
 
     init {
         leftDrive.setSelectedSensor(FeedbackDevice.QuadEncoder)
         rightDrive.setSelectedSensor(FeedbackDevice.QuadEncoder)
-
-        leftDrive.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 20, 0)
-        rightDrive.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 20, 0)
-        leftDrive.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 20, 0)
-        rightDrive.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 20, 0)
 
         leftDrive.setSensorPhase(true)
         rightDrive.setSensorPhase(true)
@@ -79,15 +75,8 @@ object Drivetrain : Subsystem("Drivetrain") {
         // (max % output @ 1 rev / 1023) / encoder ticks per rev
         val kP = (0.4 * 1023.0) / 8192.0
 
-        leftDrive.config_kF(0, kF, 0)
-        leftDrive.config_kP(0, kP, 0)
-        leftDrive.config_kI(0, 0.0, 0)
-        leftDrive.config_kD(0, 0.0, 0)
-
-        rightDrive.config_kF(0, kF, 0)
-        rightDrive.config_kP(0, kP, 0)
-        rightDrive.config_kI(0, 0.0, 0)
-        rightDrive.config_kD(0, 0.0, 0)
+        leftDrive.setPIDF(kP = kP, kF = kF)
+        rightDrive.setPIDF(kP = kP, kF = kF)
 
         telemetry.add("Left Encoder") { leftPosition }
         telemetry.add("Right Encoder") { rightPosition }
@@ -221,8 +210,7 @@ object Drivetrain : Subsystem("Drivetrain") {
                 leftPercentage.setDouble(leftDrive.motorOutputPercent)
                 rightPercentage.setDouble(rightDrive.motorOutputPercent)
 
-                leftDrive.set(ControlMode.Position, feetToTicks(leftDistance))
-                rightDrive.set(ControlMode.Position, feetToTicks(rightDistance))
+                drivePosition(feetToTicks(leftDistance), feetToTicks(rightDistance))
 
                 lastSet.setDouble(lastSetTime - timer.get())
                 lastSetTime = timer.get()
@@ -251,12 +239,12 @@ object Drivetrain : Subsystem("Drivetrain") {
     }
 
     fun drivePosition(leftPosition: Double, rightPosition: Double) {
-        leftDrive.set(ControlMode.Position, leftPosition)
-        rightDrive.set(ControlMode.Position, rightPosition)
+        leftDrive.setPosition(leftPosition)
+        rightDrive.setPosition(rightPosition)
     }
 
     fun stop() {
-        leftDrive.set(0.0)
-        rightDrive.set(0.0)
+        leftDrive.setPercent(0.0)
+        rightDrive.setPercent(0.0)
     }
 }
