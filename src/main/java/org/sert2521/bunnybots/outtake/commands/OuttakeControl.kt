@@ -14,20 +14,16 @@ class OuttakeControl : Command() {
     private val shouldOutput get() = secondaryJoystick.getRawButton(-1)
 
     override fun execute(): Boolean {
-
-        // If joystick button is pressed, open flap and start belt motor. If the button is not being pressed, close the flap and set the motor speed to 0 
+        // If joystick button is pressed, open flap and start belt motor.
+        // If the button is not being pressed, close the flap and set the motor speed to 0 
         if (shouldOutput) {
-
             Outtake.beltMotor.set(Outtake.OUTTAKE_BELT_SPEED)
             Outtake.flapServo.angle = 90.0
-
         } else {
-
             Outtake.beltMotor.set(0.0)
             Outtake.flapServo.angle = 0.0
-
         }
+        
         return false
-
     }
 }
