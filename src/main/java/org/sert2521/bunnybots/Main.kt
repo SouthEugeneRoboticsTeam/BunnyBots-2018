@@ -2,7 +2,7 @@ package org.sert2521.bunnybots
 
 import org.sert2521.bunnybots.arm.Arm
 import org.sert2521.bunnybots.autonomous.AutoChooser
-import org.sert2521.bunnybots.autonomous.auto
+import org.sert2521.bunnybots.autonomous.testAuto
 import org.sert2521.bunnybots.drivetrain.Drivetrain
 import org.sert2521.bunnybots.drivetrain.teleopDrive
 import org.sert2521.bunnybots.dropper.Dropper
@@ -16,7 +16,6 @@ import org.team2471.frc.lib.framework.disable
 import org.team2471.frc.lib.framework.enable
 import org.team2471.frc.lib.framework.initializeWpilib
 import org.team2471.frc.lib.framework.runRobotProgram
-import org.team2471.frc.lib.motion_profiling.Path2D
 
 object Robot : RobotProgram {
     init {
@@ -33,6 +32,10 @@ object Robot : RobotProgram {
         logBuildInfo()
     }
 
+    private suspend fun initCommands() {
+        resetDroppers()
+    }
+
     private suspend fun enableSubsystems() {
         Drivetrain.enable()
         Arm.enable()
@@ -45,49 +48,29 @@ object Robot : RobotProgram {
         Arm.disable()
     }
 
-    private suspend fun initCommands() {
-        resetDroppers()
-    }
-
     override suspend fun teleop() {
         println("Entering teleop...")
 
         enableSubsystems()
         teleopDrive()
-
-        println("Hello after teleopDrive!")
     }
 
     override suspend fun autonomous() {
-        enableSubsystems()
         println("Entering autonomous...")
-//        testAuto()
 
-        println("Hello after auto!")
-
-        val path = Path2D()
-
-        path.addPointAngleAndMagnitude(0.0, 0.0, 0.0, 1.0)
-        path.addPointAngleAndMagnitude(3.0, 3.0, 2.0, 1.0)
-
-        path.addEasePoint(1.0, 0.25)
-        path.addEasePoint(2.0, 1.0)
-
-        path.name = "Test Path 123"
-        path.duration = 5.0
-        path.autonomous = auto
-        path.robotDirection = Path2D.RobotDirection.BACKWARD
-
-        Drivetrain.driveAlongPath(path, 1.0)
+        enableSubsystems()
+        testAuto()
     }
 
     override suspend fun test() {
-//        enableSubsystems()
         println("Entering test...")
+
+        enableSubsystems()
     }
 
     override suspend fun disable() {
         println("Entering disable...")
+
         disableSubsystems()
     }
 }

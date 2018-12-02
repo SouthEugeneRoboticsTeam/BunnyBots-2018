@@ -30,7 +30,6 @@ import org.team2471.frc.lib.math.windRelativeAngles
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.vector.Vector2
-import java.lang.Math.signum
 import java.lang.Math.toDegrees
 import kotlin.math.round
 
@@ -157,8 +156,6 @@ object Drivetrain : Subsystem("Drivetrain") {
 
         var prevLeftDistance = 0.0
         var prevRightDistance = 0.0
-        var prevLeftVelocity = 0.0
-        var prevRightVelocity = 0.0
         var prevTime = 0.0
 
         val pathAngleEntry = telemetry.table.getEntry("Path Angle")
@@ -206,15 +203,11 @@ object Drivetrain : Subsystem("Drivetrain") {
                 val leftDistance = path.getLeftDistance(t) + gyroCorrection
                 val rightDistance = path.getRightDistance(t) - gyroCorrection
 
-//                println("Desired (L: $leftDistance, R: $rightDistance), ERROR (L: ${ticksToFeet(leftDrive.getClosedLoopError(0))}, R: ${ticksToFeet(rightDrive.getClosedLoopError(0))})")
-
                 val leftVelocity = (leftDistance - prevLeftDistance) / dt
                 val rightVelocity = (rightDistance - prevRightDistance) / dt
 
                 val leftVelocityError = leftDrive.getSelectedSensorVelocity(0) - leftVelocity
                 val rightVelocityError = rightDrive.getSelectedSensorVelocity(0) - rightVelocity
-
-                val velocityDelta = (leftVelocity - rightVelocity) * TURNING_FEED_FORWARD
 
                 pathAngleEntry.setDouble(pathAngle)
                 angleErrorEntry.setDouble(pathAngle)
@@ -228,21 +221,11 @@ object Drivetrain : Subsystem("Drivetrain") {
                 leftPercentage.setDouble(leftDrive.motorOutputPercent)
                 rightPercentage.setDouble(rightDrive.motorOutputPercent)
 
-                val leftFeedForward = leftVelocity * LEFT_FEED_FORWARD_COEFFICIENT +
-                        (LEFT_FEED_FORWARD_OFFSET * signum(leftVelocity)) + velocityDelta
-
-                val rightFeedForward = rightVelocity * RIGHT_FEED_FORWARD_COEFFICIENT +
-                        (RIGHT_FEED_FORWARD_OFFSET * signum(rightVelocity)) - velocityDelta
-
-//                println("Gyro Correction: $gyroCorrection, Left FF: $leftFeedForward, Right FF: $rightFeedForward")
-
                 leftDrive.set(ControlMode.Position, feetToTicks(leftDistance))
                 rightDrive.set(ControlMode.Position, feetToTicks(rightDistance))
 
                 lastSet.setDouble(lastSetTime - timer.get())
                 lastSetTime = timer.get()
-
-//                println("${leftDrive.motorOutputPercent}, ${rightDrive.motorOutputPercent}")
 
                 if (leftDrive.motorOutputPercent > 0.95) {
                     DriverStation.reportWarning("Left motor is saturated", false)
@@ -256,8 +239,6 @@ object Drivetrain : Subsystem("Drivetrain") {
                 prevTime = t
                 prevLeftDistance = leftDistance
                 prevRightDistance = rightDistance
-                prevLeftVelocity = leftVelocity
-                prevRightVelocity = rightVelocity
 
                 if (finished) {
                     exitPeriodic()
