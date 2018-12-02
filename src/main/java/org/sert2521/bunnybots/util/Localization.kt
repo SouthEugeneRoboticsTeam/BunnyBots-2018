@@ -23,9 +23,11 @@ class PositionEstimator(var position: Point, private var heading: Double, time: 
         heading: Double,
         time: Long = RobotController.getFPGATime()
     ) {
-        val dt = (time - lastTimestamp) / 1000.0 // convert to seconds
+        val dt = (time - lastTimestamp) / 1000000.0 // convert to seconds
         val avgVelocity = average(leftVelocity, rightVelocity)
         val deltaHeading = Math.toRadians(heading - this.heading) // convert to radians for trig functions
+
+        println("$avgVelocity, ${cos(deltaHeading)}, $dt")
         position += Point(avgVelocity * sin(deltaHeading), avgVelocity * cos(deltaHeading)) * dt
 
         this.heading = heading

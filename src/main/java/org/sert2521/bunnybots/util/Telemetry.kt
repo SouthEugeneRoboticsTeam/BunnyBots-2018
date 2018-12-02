@@ -1,10 +1,11 @@
 package org.sert2521.bunnybots.util
 
+import edu.wpi.first.networktables.NetworkTable
 import edu.wpi.first.networktables.NetworkTableInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.team2471.frc.lib.coroutines.loop
+import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.Subsystem
 import kotlin.coroutines.CoroutineContext
 
@@ -16,19 +17,16 @@ object TelemetryScope : CoroutineScope {
 class Telemetry {
     private data class Binding(val name: String, val body: () -> Any)
 
-    private var telemetrySubsystem: Subsystem? = null
-    private var telemetryName: String = ""
+    val table: NetworkTable
 
     private val bindings = mutableListOf<Binding>()
-    val table = NetworkTableInstance.getDefault().getTable(telemetryName)!!
 
     constructor(name: String) {
-        telemetryName = name
+        table = NetworkTableInstance.getDefault().getTable(name)!!
     }
 
     constructor(subsystem: Subsystem) {
-        telemetrySubsystem = subsystem
-        telemetryName = subsystem.name
+        table = NetworkTableInstance.getDefault().getTable(subsystem.name)!!
     }
 
     private fun tick() = bindings.forEach { put(it.name, it.body()) }
@@ -41,7 +39,7 @@ class Telemetry {
 
     init {
         TelemetryScope.launch {
-            loop(period = 0.1) {
+            periodic(period = 0.1) {
                 tick()
             }
         }

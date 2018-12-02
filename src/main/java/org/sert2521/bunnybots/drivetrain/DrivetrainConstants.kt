@@ -10,4 +10,4 @@ internal const val LEFT_FEED_FORWARD_OFFSET = 0.02
 internal const val RIGHT_FEED_FORWARD_COEFFICIENT = 0.07
 internal const val RIGHT_FEED_FORWARD_OFFSET = 0.02
 
-internal const val TURNING_FEED_FORWARD = 0.0324
+internal const val TURNING_FEED_FORWARD = 0.035

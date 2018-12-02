@@ -2,13 +2,14 @@ package org.sert2521.bunnybots.util
 
 // Joysticks
 const val CONTROLLER_PORT = 0
+const val PRIMARY_STICK_PORT = 0
 const val SECONDARY_STICK_PORT = 1
 
 // Talon IDs
-const val LEFT_FRONT_MOTOR = 10
-const val LEFT_REAR_MOTOR = 11
-const val RIGHT_FRONT_MOTOR = 12
-const val RIGHT_REAR_MOTOR = 13
+const val LEFT_FRONT_MOTOR = 11 // 11,12,13,14
+const val LEFT_REAR_MOTOR = 12
+const val RIGHT_FRONT_MOTOR = 13
+const val RIGHT_REAR_MOTOR = 14
 const val ARM_MOTOR = 10
 
 // Auto
