@@ -69,6 +69,7 @@ deploy {
             team = getTeamOrDefault(2521)
         }
     }
+
     artifacts {
         artifact("main", FRCJavaArtifact) {
             targets << "roborio"
