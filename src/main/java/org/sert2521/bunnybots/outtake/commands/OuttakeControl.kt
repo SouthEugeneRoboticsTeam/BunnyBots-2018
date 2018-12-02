@@ -1,10 +1,8 @@
 package org.sert2521.bunnybots.outtake.commands
 
 import org.sert2521.bunnybots.outtake.Outtake
-import org.sert2521.bunnybots.util.OUTTAKE_BELT_MOTOR
 import org.sert2521.bunnybots.util.secondaryJoystick
 import org.sertain.command.Command
-import edu.wpi.first.wpilibj.Servo
 
 class OuttakeControl : Command() {
     init {
@@ -23,7 +21,7 @@ class OuttakeControl : Command() {
             Outtake.beltMotor.set(0.0)
             Outtake.flapServo.angle = 0.0
         }
-        
+
         return false
     }
 }
