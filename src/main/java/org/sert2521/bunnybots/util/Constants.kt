@@ -12,6 +12,11 @@ const val RIGHT_REAR_MOTOR = -1
 const val INTAKE_MOTOR = -1
 const val ARM_MOTOR = -1
 
+// Servo IDs
+const val LEFT_DROPPER_SERVO = -1
+const val MIDDLE_DROPPER_SERVO = -1
+const val RIGHT_DROPPER_SERVO = -1
+
 // Auto
 // TODO: Update these with real values
 const val ENCODER_TICKS_PER_REVOLUTION = 8192
