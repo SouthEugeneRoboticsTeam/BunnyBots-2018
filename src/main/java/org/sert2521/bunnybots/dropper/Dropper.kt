@@ -8,11 +8,9 @@ import org.sert2521.bunnybots.util.RIGHT_DROPPER_SERVO
 import org.sertain.command.Subsystem
 
 object Dropper : Subsystem() {
-
     val leftServo = Servo(LEFT_DROPPER_SERVO)
     val middleServo = Servo(MIDDLE_DROPPER_SERVO)
     val rightServo = Servo(RIGHT_DROPPER_SERVO)
 
     override val defaultCommand get() = DropperControl()
-
 }
