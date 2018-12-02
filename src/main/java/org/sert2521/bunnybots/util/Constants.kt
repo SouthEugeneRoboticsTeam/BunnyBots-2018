@@ -13,7 +13,7 @@ const val INTAKE_MOTOR = -1
 const val ARM_MOTOR = -1
 const val OUTTAKE_BELT_MOTOR = -1
 
-// Servo Ids
+// Servo IDs
 const val OUTTAKE_FLAP_SERVO = -1
 
 // Auto
