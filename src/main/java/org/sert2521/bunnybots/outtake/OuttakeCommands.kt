@@ -9,3 +9,7 @@ suspend fun runOuttake() = use(Outtake) {
         Outtake.open()
     }
 }
+
+suspend fun openFlap() = use(Outtake) {
+    Outtake.open(true)
+}

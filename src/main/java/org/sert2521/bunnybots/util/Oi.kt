@@ -6,8 +6,11 @@ import edu.wpi.first.wpilibj.XboxController
 import org.sert2521.bunnybots.CONTROLLER_PORT
 import org.sert2521.bunnybots.PRIMARY_STICK_PORT
 import org.sert2521.bunnybots.SECONDARY_STICK_PORT
+import org.sert2521.bunnybots.arm.ArmPose
+import org.sert2521.bunnybots.arm.animateArmToPose
 import org.sert2521.bunnybots.dropper.dropBunny
 import org.sert2521.bunnybots.intake.runIntake
+import org.sert2521.bunnybots.outtake.openFlap
 import org.sert2521.bunnybots.outtake.runOuttake
 import org.team2471.frc.lib.framework.createMappings
 
@@ -26,6 +29,9 @@ fun initControls() {
         buttonHold(1) { runIntake() }
         buttonToggle(2) { runOuttake() }
         buttonPress(3) { dropBunny() }
+        buttonPress(4) { openFlap() }
+        buttonPress(12) { animateArmToPose(ArmPose.TOP) }
+        buttonPress(11) { animateArmToPose(ArmPose.BOTTOM) }
     }
 }
 

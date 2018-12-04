@@ -32,15 +32,9 @@ object Robot : RobotProgram {
         logBuildInfo()
     }
 
-    private suspend fun initCommands() {
-        resetDroppers()
-    }
-
-    private suspend fun enableSubsystems() {
+    private fun enableSubsystems() {
         Drivetrain.enable()
         Arm.enable()
-
-        initCommands()
     }
 
     private fun disableSubsystems() {
@@ -48,30 +42,25 @@ object Robot : RobotProgram {
         Arm.disable()
     }
 
+    override suspend fun enable() {
+        enableSubsystems()
+        resetDroppers()
+    }
+
+    override suspend fun disable() {
+        disableSubsystems()
+    }
+
     override suspend fun teleop() {
         println("Entering teleop...")
 
-        enableSubsystems()
         teleopDrive()
     }
 
     override suspend fun autonomous() {
         println("Entering autonomous...")
 
-        enableSubsystems()
         testAuto()
-    }
-
-    override suspend fun test() {
-        println("Entering test...")
-
-        enableSubsystems()
-    }
-
-    override suspend fun disable() {
-        println("Entering disable...")
-
-        disableSubsystems()
     }
 }
 

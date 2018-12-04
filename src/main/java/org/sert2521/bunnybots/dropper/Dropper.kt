@@ -15,26 +15,27 @@ object Dropper : Subsystem("Dropper") {
     private val middleServo = Servo(MIDDLE_DROPPER_SERVO)
     private val rightServo = Servo(RIGHT_DROPPER_SERVO)
 
-    private enum class DropperServo(val servo: Servo) {
+    private enum class Dropper(val servo: Servo) {
         LEFT(leftServo),
         MIDDLE(middleServo),
-        RIGHT(rightServo)
+        RIGHT(rightServo),
     }
 
-    private var currentServo: DropperServo = DropperServo.LEFT
+    private var currentDropper: Dropper = Dropper.LEFT
 
     fun reset() {
         leftServo.set(CLOSED_POSITION)
         middleServo.set(CLOSED_POSITION)
         rightServo.set(CLOSED_POSITION)
 
-        currentServo = DropperServo.LEFT
+        currentDropper = Dropper.LEFT
     }
 
     fun dropNext() {
-        val servo = currentServo.servo
-        currentServo = currentServo.next()
+        val servo = currentDropper.servo
+        currentDropper = currentDropper.next()
 
+        // Open servo, wait, then close and disable servo
         MeanlibScope.launch {
             servo.set(OPEN_POSITION)
             delay(DELAY_TIME)
