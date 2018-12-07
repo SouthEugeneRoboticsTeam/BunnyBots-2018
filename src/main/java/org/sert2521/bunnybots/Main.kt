@@ -1,7 +1,10 @@
 package org.sert2521.bunnybots
 
+import edu.wpi.first.wpilibj.CameraServer
 import org.sert2521.bunnybots.arm.Arm
 import org.sert2521.bunnybots.autonomous.AutoChooser
+import org.sert2521.bunnybots.autonomous.colorPin
+import org.sert2521.bunnybots.autonomous.sortPin
 import org.sert2521.bunnybots.autonomous.testAuto
 import org.sert2521.bunnybots.drivetrain.Drivetrain
 import org.sert2521.bunnybots.drivetrain.teleopDrive
@@ -25,6 +28,9 @@ object Robot : RobotProgram {
         Arm
         Dropper
 
+        CameraServer.getInstance().startAutomaticCapture(0)
+        CameraServer.getInstance().startAutomaticCapture(1)
+
         UDPServer.start()
 
         initControls()
@@ -35,6 +41,9 @@ object Robot : RobotProgram {
     private fun enableSubsystems() {
         Drivetrain.enable()
         Arm.enable()
+
+        colorPin.set(false)
+        sortPin.set(false)
     }
 
     private fun disableSubsystems() {

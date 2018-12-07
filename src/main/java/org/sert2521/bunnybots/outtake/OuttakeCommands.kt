@@ -4,9 +4,12 @@ import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.use
 
 suspend fun runOuttake() = use(Outtake) {
-    periodic {
-        Outtake.runBelt()
-        Outtake.open()
+    try {
+        periodic {
+            Outtake.run()
+        }
+    } finally {
+        Outtake.stop()
     }
 }
 

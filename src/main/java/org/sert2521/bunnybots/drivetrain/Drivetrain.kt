@@ -31,6 +31,7 @@ import org.team2471.frc.lib.math.windRelativeAngles
 import org.team2471.frc.lib.motion_profiling.MotionCurve
 import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.vector.Vector2
+import java.lang.Math.signum
 import java.lang.Math.toDegrees
 import kotlin.math.round
 
@@ -198,6 +199,8 @@ object Drivetrain : Subsystem("Drivetrain") {
                 val leftVelocityError = leftDrive.getSelectedSensorVelocity(0) - leftVelocity
                 val rightVelocityError = rightDrive.getSelectedSensorVelocity(0) - rightVelocity
 
+                val velocityDelta = (leftVelocity - rightVelocity) * TURNING_FEED_FORWARD
+
                 pathAngleEntry.setDouble(pathAngle)
                 angleErrorEntry.setDouble(pathAngle)
                 leftPositionErrorEntry.setDouble(ticksToFeet(leftDrive.getClosedLoopError(0)))
@@ -210,7 +213,13 @@ object Drivetrain : Subsystem("Drivetrain") {
                 leftPercentage.setDouble(leftDrive.motorOutputPercent)
                 rightPercentage.setDouble(rightDrive.motorOutputPercent)
 
-                drivePosition(feetToTicks(leftDistance), feetToTicks(rightDistance))
+                val leftFeedForward = leftVelocity * LEFT_FEED_FORWARD_COEFFICIENT +
+                        (LEFT_FEED_FORWARD_OFFSET * signum(leftVelocity)) + velocityDelta
+
+                val rightFeedForward = rightVelocity * RIGHT_FEED_FORWARD_COEFFICIENT +
+                        (RIGHT_FEED_FORWARD_OFFSET * signum(rightVelocity)) - velocityDelta
+
+                drivePosition(feetToTicks(leftDistance), feetToTicks(rightDistance), leftFeedForward, rightFeedForward)
 
                 lastSet.setDouble(lastSetTime - timer.get())
                 lastSetTime = timer.get()
@@ -238,9 +247,14 @@ object Drivetrain : Subsystem("Drivetrain") {
         }
     }
 
-    fun drivePosition(leftPosition: Double, rightPosition: Double) {
-        leftDrive.setPosition(leftPosition)
-        rightDrive.setPosition(rightPosition)
+    fun drivePosition(
+            leftPosition: Double,
+            rightPosition: Double,
+            leftFeedForward: Double? = null,
+            rightFeedForward: Double? = null
+    ) {
+        leftDrive.setPosition(leftPosition, leftFeedForward)
+        rightDrive.setPosition(rightPosition, rightFeedForward)
     }
 
     fun stop() {

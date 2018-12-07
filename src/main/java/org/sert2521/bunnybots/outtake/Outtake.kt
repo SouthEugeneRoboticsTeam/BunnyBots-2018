@@ -14,7 +14,9 @@ object Outtake : Subsystem("Outtake") {
     private val teleopServo = Servo(OUTTAKE_TELEOP_SERVO)
     private val autoServo = Servo(OUTTAKE_AUTO_SERVO)
 
-    fun runBelt(speed: Double = OUTTAKE_BELT_SPEED) = beltMotor.setPercent(speed)
+    fun run(speed: Double = OUTTAKE_BELT_SPEED) = beltMotor.setPercent(speed)
+
+    fun stop() = beltMotor.stopMotor()
 
     fun open(auto: Boolean = DriverStation.getInstance().isAutonomous) {
         teleopServo.set(if (auto) TELEOP_CLOSED_POSITION else TELEOP_OPEN_POSITION)

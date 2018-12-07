@@ -27,7 +27,7 @@ val driveSpeedScalar get() = Preferences.getInstance().getDouble("drive_speed_sc
 fun initControls() {
     primaryJoystick.createMappings {
         buttonHold(1) { runIntake() }
-        buttonToggle(2) { runOuttake() }
+        buttonHold(2) { runOuttake() }
         buttonPress(3) { dropBunny() }
         buttonPress(4) { openFlap() }
         buttonPress(12) { animateArmToPose(ArmPose.TOP) }
