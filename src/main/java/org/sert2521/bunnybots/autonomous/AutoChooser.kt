@@ -49,8 +49,8 @@ object AutoChooser {
         }
 
         val flags = EntryListenerFlags.kImmediate or
-                EntryListenerFlags.kNew or
-                EntryListenerFlags.kUpdate
+            EntryListenerFlags.kNew or
+            EntryListenerFlags.kUpdate
 
         NetworkTableInstance.getDefault()
             .getTable("PathVisualizer")

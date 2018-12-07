@@ -44,10 +44,10 @@ object Drivetrain : Subsystem("Drivetrain") {
     val ahrs = AHRS(I2C.Port.kMXP)
 
     private fun ticksToFeet(ticks: Int) =
-            ticks.toDouble() / ENCODER_TICKS_PER_REVOLUTION * WHEEL_DIAMETER * Math.PI / 12.0
+        ticks.toDouble() / ENCODER_TICKS_PER_REVOLUTION * WHEEL_DIAMETER * Math.PI / 12.0
 
     private fun feetToTicks(feet: Double) =
-            feet * 12.0 / Math.PI / WHEEL_DIAMETER * ENCODER_TICKS_PER_REVOLUTION
+        feet * 12.0 / Math.PI / WHEEL_DIAMETER * ENCODER_TICKS_PER_REVOLUTION
 
     private val leftPosition get() = leftDrive.getEncoderPosition()
     private val rightPosition get() = rightDrive.getEncoderPosition()
@@ -57,7 +57,7 @@ object Drivetrain : Subsystem("Drivetrain") {
 
     private val leftDrive = Talon(LEFT_FRONT_MOTOR).autoBrake() + Talon(LEFT_REAR_MOTOR).autoBrake()
     private val rightDrive =
-            Talon(RIGHT_FRONT_MOTOR).autoBrake().invert() + Talon(RIGHT_REAR_MOTOR).autoBrake().invert()
+        Talon(RIGHT_FRONT_MOTOR).autoBrake().invert() + Talon(RIGHT_REAR_MOTOR).autoBrake().invert()
     private val drive = DifferentialDrive(leftDrive, rightDrive)
 
     init {
@@ -101,7 +101,7 @@ object Drivetrain : Subsystem("Drivetrain") {
     fun arcade(speed: Double, rotation: Double) = drive.arcadeDrive(speed, rotation)
 
     fun curvature(speed: Double, rotation: Double, quickTurn: Boolean) =
-            drive.curvatureDrive(speed, rotation, quickTurn)
+        drive.curvatureDrive(speed, rotation, quickTurn)
 
     suspend fun driveDistance(distance: Double, time: Double, suspend: Boolean = true) {
         leftDrive.selectProfileSlot(0, 0)
@@ -139,7 +139,7 @@ object Drivetrain : Subsystem("Drivetrain") {
 
     suspend fun driveAlongPath(path: Path2D, extraTime: Double = 0.0) {
         println("Driving along path ${path.name}, duration: ${path.durationWithSpeed}," +
-                        "travel direction: ${path.robotDirection}, mirrored: ${path.isMirrored}")
+                    "travel direction: ${path.robotDirection}, mirrored: ${path.isMirrored}")
 
         path.resetDistances()
         reset()
@@ -214,12 +214,15 @@ object Drivetrain : Subsystem("Drivetrain") {
                 rightPercentage.setDouble(rightDrive.motorOutputPercent)
 
                 val leftFeedForward = leftVelocity * LEFT_FEED_FORWARD_COEFFICIENT +
-                        (LEFT_FEED_FORWARD_OFFSET * signum(leftVelocity)) + velocityDelta
+                    (LEFT_FEED_FORWARD_OFFSET * signum(leftVelocity)) + velocityDelta
 
                 val rightFeedForward = rightVelocity * RIGHT_FEED_FORWARD_COEFFICIENT +
-                        (RIGHT_FEED_FORWARD_OFFSET * signum(rightVelocity)) - velocityDelta
+                    (RIGHT_FEED_FORWARD_OFFSET * signum(rightVelocity)) - velocityDelta
 
-                drivePosition(feetToTicks(leftDistance), feetToTicks(rightDistance), leftFeedForward, rightFeedForward)
+                drivePosition(feetToTicks(leftDistance),
+                              feetToTicks(rightDistance),
+                              leftFeedForward,
+                              rightFeedForward)
 
                 lastSet.setDouble(lastSetTime - timer.get())
                 lastSetTime = timer.get()
