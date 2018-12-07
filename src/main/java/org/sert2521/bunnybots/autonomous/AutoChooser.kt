@@ -27,8 +27,6 @@ object AutoChooser {
         } catch (_: Exception) {
             DriverStation.reportError("Autonomi cache could not be found", false)
             autonomi = Autonomi()
-        } finally {
-            println("Done dealing with cache...")
         }
 
         val handler = { event: EntryNotification ->
@@ -38,6 +36,7 @@ object AutoChooser {
                 val t = measureTimeFPGA {
                     autonomi = Autonomi.fromJsonString(json)
                 }
+
                 println("Loaded autonomi in $t seconds")
 
                 cacheFile.writeText(json)
