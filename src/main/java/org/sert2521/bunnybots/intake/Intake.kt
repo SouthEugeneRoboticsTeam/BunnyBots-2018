@@ -1,14 +1,15 @@
 package org.sert2521.bunnybots.intake
 
-import org.sert2521.bunnybots.intake.commands.IntakeControl
-import org.sert2521.bunnybots.util.INTAKE_MOTOR
-import org.sertain.command.Subsystem
+import org.sert2521.bunnybots.INTAKE_MOTOR
 import org.sertain.hardware.Talon
+import org.sertain.hardware.setPercent
+import org.sertain.hardware.stop
+import org.team2471.frc.lib.framework.Subsystem
 
-object Intake : Subsystem() {
-    const val INTAKE_SPEED = 0.0
+object Intake : Subsystem("Intake") {
+    private val intakeMotor = Talon(INTAKE_MOTOR)
 
-    val motor = Talon(INTAKE_MOTOR)
+    fun run(speed: Double = INTAKE_SPEED) = intakeMotor.setPercent(speed)
 
-    override val defaultCommand get() = IntakeControl()
+    fun stop() = intakeMotor.stop()
 }
