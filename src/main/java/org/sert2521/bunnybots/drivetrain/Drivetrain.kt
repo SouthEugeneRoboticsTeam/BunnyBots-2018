@@ -248,10 +248,10 @@ object Drivetrain : Subsystem("Drivetrain") {
     }
 
     fun drivePosition(
-            leftPosition: Double,
-            rightPosition: Double,
-            leftFeedForward: Double? = null,
-            rightFeedForward: Double? = null
+        leftPosition: Double,
+        rightPosition: Double,
+        leftFeedForward: Double? = null,
+        rightFeedForward: Double? = null
     ) {
         leftDrive.setPosition(leftPosition, leftFeedForward)
         rightDrive.setPosition(rightPosition, rightFeedForward)
