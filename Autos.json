@@ -30,7 +30,7 @@
 								},
 								"m_prevSlopeMethod": "SLOPE_FLAT",
 								"m_prevTangent": {
-									"x": 0.0,
+									"x": 0.8333333333333333,
 									"y": 0.0
 								},
 								"m_timeAndValue": {
@@ -40,7 +40,7 @@
 							},
 							"m_nextSlopeMethod": "SLOPE_FLAT",
 							"m_nextTangent": {
-								"x": 0.0,
+								"x": 1.6666666666666665,
 								"y": 0.0
 							},
 							"m_prevAngleAndMagnitude": {
@@ -77,7 +77,7 @@
 								"m_nextSlopeMethod": "SLOPE_SMOOTH",
 								"m_nextTangent": {
 									"x": 0.0,
-									"y": 0.0
+									"y": 7.6
 								},
 								"m_position": {
 									"x": 0.0,
@@ -90,13 +90,13 @@
 								"m_prevSlopeMethod": "SLOPE_SMOOTH",
 								"m_prevTangent": {
 									"x": 0.0,
-									"y": 0.0
+									"y": 7.6
 								}
 							},
 							"m_nextSlopeMethod": "SLOPE_SMOOTH",
 							"m_nextTangent": {
 								"x": 0.0,
-								"y": 0.0
+								"y": 7.6
 							},
 							"m_position": {
 								"x": 0.0,
@@ -109,7 +109,7 @@
 							"m_prevSlopeMethod": "SLOPE_SMOOTH",
 							"m_prevTangent": {
 								"x": 0.0,
-								"y": 0.0
+								"y": 7.6
 							}
 						}
 					},
@@ -145,7 +145,7 @@
 								},
 								"m_prevSlopeMethod": "SLOPE_FLAT",
 								"m_prevTangent": {
-									"x": 0.0,
+									"x": 1.3333333333333333,
 									"y": 0.0
 								},
 								"m_timeAndValue": {
@@ -155,7 +155,7 @@
 							},
 							"m_nextSlopeMethod": "SLOPE_FLAT",
 							"m_nextTangent": {
-								"x": 0.0,
+								"x": 2.6666666666666665,
 								"y": 0.0
 							},
 							"m_prevAngleAndMagnitude": {
@@ -332,7 +332,7 @@
 								},
 								"m_prevSlopeMethod": "SLOPE_FLAT",
 								"m_prevTangent": {
-									"x": 0.0,
+									"x": 0.6666666666666666,
 									"y": 0.0
 								},
 								"m_timeAndValue": {
@@ -342,7 +342,7 @@
 							},
 							"m_nextSlopeMethod": "SLOPE_FLAT",
 							"m_nextTangent": {
-								"x": 0.0,
+								"x": 1.3333333333333333,
 								"y": 0.0
 							},
 							"m_prevAngleAndMagnitude": {
@@ -519,7 +519,7 @@
 								},
 								"m_prevSlopeMethod": "SLOPE_FLAT",
 								"m_prevTangent": {
-									"x": 0.0,
+									"x": 0.3333333333333333,
 									"y": 0.0
 								},
 								"m_timeAndValue": {
@@ -529,7 +529,7 @@
 							},
 							"m_nextSlopeMethod": "SLOPE_FLAT",
 							"m_nextTangent": {
-								"x": 0.0,
+								"x": 0.6666666666666666,
 								"y": 0.0
 							},
 							"m_prevAngleAndMagnitude": {
@@ -752,8 +752,8 @@
 					"m_xyCurve": {
 						"m_headPoint": {
 							"m_nextAngleAndMagnitude": {
-								"x": -28.91513455308622,
-								"y": 2.017501087831627
+								"x": -28.82611833799527,
+								"y": 2.014501018491656
 							},
 							"m_nextPoint": {
 								"m_nextAngleAndMagnitude": {
@@ -767,36 +767,36 @@
 									},
 									"m_nextPoint": {
 										"m_nextAngleAndMagnitude": {
-											"x": -14.242922138081084,
+											"x": -26.977707332635177,
 											"y": 1.9
 										},
 										"m_nextSlopeMethod": "SLOPE_SMOOTH",
 										"m_nextTangent": {
-											"x": 4.1240780013984315,
-											"y": -5.134056287455189
+											"x": 1.4970947845837261,
+											"y": -6.370317992607633
 										},
 										"m_position": {
-											"x": 8.305988515176356,
-											"y": 20.030079299972595
+											"x": 8.927468454954559,
+											"y": 18.927027265507807
 										},
 										"m_prevAngleAndMagnitude": {
-											"x": -14.242922138081084,
-											"y": 1.8519067070625097
+											"x": -26.977707332635177,
+											"y": 1.949650408463807
 										},
 										"m_prevSlopeMethod": "SLOPE_SMOOTH",
 										"m_prevTangent": {
-											"x": 4.0196882690730025,
-											"y": -5.004101722723533
+											"x": 1.53621655698563,
+											"y": -6.536785829648323
 										}
 									},
 									"m_nextSlopeMethod": "SLOPE_SMOOTH",
 									"m_nextTangent": {
-										"x": 9.617409004388769,
-										"y": 1.8153342297440598
+										"x": 9.619555692958238,
+										"y": 1.4324272871559662
 									},
 									"m_position": {
-										"x": 2.768662838392124,
-										"y": 24.20016406890887
+										"x": 4.481109743395512,
+										"y": 24.188050374017607
 									},
 									"m_prevAngleAndMagnitude": {
 										"x": -37.29072581582288,
@@ -804,18 +804,18 @@
 									},
 									"m_prevSlopeMethod": "SLOPE_SMOOTH",
 									"m_prevTangent": {
-										"x": 10.213289581624263,
-										"y": 1.9278096800656188
+										"x": 10.370806511959067,
+										"y": 1.5442944260325362
 									}
 								},
 								"m_nextSlopeMethod": "SLOPE_SMOOTH",
 								"m_nextTangent": {
-									"x": -2.87387966365491,
-									"y": 11.174900981716622
+									"x": -2.137660314183012,
+									"y": 11.442153366399511
 								},
 								"m_position": {
-									"x": 1.2100082034454465,
-									"y": 12.154771670768357
+									"x": 2.3080200738566456,
+									"y": 12.129533188145059
 								},
 								"m_prevAngleAndMagnitude": {
 									"x": 0.0,
@@ -823,27 +823,27 @@
 								},
 								"m_prevSlopeMethod": "SLOPE_SMOOTH",
 								"m_prevTangent": {
-									"x": -3.421948716223115,
-									"y": 13.30603314812189
+									"x": -2.4168598125005594,
+									"y": 12.93661132979775
 								}
 							},
 							"m_nextSlopeMethod": "SLOPE_SMOOTH",
 							"m_nextTangent": {
-								"x": -0.9354786883101163,
-								"y": 14.558637515924625
+								"x": -0.014569468342071623,
+								"y": 13.953526828263927
 							},
 							"m_position": {
 								"x": 9.0,
-								"y": -0.03
+								"y": 0.0
 							},
 							"m_prevAngleAndMagnitude": {
-								"x": -28.91513455308622,
+								"x": -28.82611833799527,
 								"y": 1.9
 							},
 							"m_prevSlopeMethod": "SLOPE_SMOOTH",
 							"m_prevTangent": {
-								"x": -0.8809955635263362,
-								"y": 13.710729301259887
+								"x": -0.013741363045158828,
+								"y": 13.160430662652095
 							}
 						}
 					},
