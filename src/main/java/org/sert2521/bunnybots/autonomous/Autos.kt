@@ -3,6 +3,7 @@ package org.sert2521.bunnybots.autonomous
 import edu.wpi.first.wpilibj.DigitalOutput
 import org.sert2521.bunnybots.drivetrain.followPath
 import org.sert2521.bunnybots.intake.runIntake
+import org.sert2521.bunnybots.util.Lidar
 import org.team2471.frc.lib.coroutines.parallel
 import org.team2471.frc.lib.motion_profiling.Path2D
 
@@ -16,15 +17,28 @@ suspend fun runSelectedAuto() {
     parallel({ runIntake() }, {
         pickupAuto()
 
-        val path = Path2D()
-        path.addPointAngleAndMagnitude(0.0, 0.0, 0.0, 1.0)
-        path.addPointAngleAndMagnitude(2.0, 2.0, -30.0, 1.0)
-        path.speed = 3.0
-        path.autonomous = autonomi["Tests"]
+        println("Starting new auto")
 
-        println(path)
+        println("Going from (0.0, 0.0, 0.0) to (${Lidar.xOffset ?: 0.0}, ${Lidar.yOffset ?: 0.0}, ${Lidar.theta ?: 0.0})")
 
-        followPath(path)
+//        val path = Path2D()
+////        path.addPointAngleAndMagnitude(3.42, 2.62, 12.0, 2.5)
+////        path.addPointAngleAndMagnitude(Lidar.xOffset ?: 0.0, Lidar.yOffset ?: 0.0, Lidar.theta ?: 0.0, 1.0)
+//
+//        path.addPointAngleAndMagnitude(0.0, 0.0, 0.0, 2.0)
+//        path.addPointAngleAndMagnitude(0.0, 5.0, 0.0, 2.0)
+//
+////        path.addPointAndTangent(0.0, 0.0, 0.0, 1.45)
+////        path.addPointAndTangent(-2.0, 3.5, 0.0, -1.5)
+//
+//        path.addEasePoint(0.0, 0.0)
+//        path.addEasePoint(1.0, 1.0)
+//
+//        path.duration = 3.0
+//
+//        path.autonomous = autonomi["BunnyBots"]
+//
+//        followPath(path)
     })
 }
 

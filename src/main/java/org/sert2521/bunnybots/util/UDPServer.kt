@@ -24,13 +24,23 @@ object UDPServer : Thread() {
             gson.fromJson(msg, LidarData::class.java).also {
                 Lidar.apply {
                     if (it.alive == null) {
-                        xOffset = it.xOffset
-                        yOffset = it.yOffset
-                        theta = it.theta
+                        alive = true
 
-                        telemetry.put("Theta", theta ?: 0.0)
-                        telemetry.put("X Offset", xOffset ?: 0.0)
-                        telemetry.put("Y Offset", yOffset ?: 0.0)
+                        when {
+                            it.d != null -> {
+                                distance = it.d.div(304.8) // mm -> ft
+                                telemetry.put("Distance", distance!!)
+                            }
+                            else -> {
+                                xOffset = it.x?.div(304.8) // mm -> ft
+                                yOffset = it.y?.div(304.8) // mm -> ft
+                                theta = it.t
+
+                                telemetry.put("Theta", theta ?: 0.0)
+                                telemetry.put("X Offset", xOffset ?: 0.0)
+                                telemetry.put("Y Offset", yOffset ?: 0.0)
+                            }
+                        }
                     } else {
                         alive = it.alive
                     }

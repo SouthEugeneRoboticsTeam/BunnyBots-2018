@@ -2,6 +2,7 @@ package org.sert2521.bunnybots.drivetrain
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice
 import com.kauailabs.navx.frc.AHRS
+import edu.wpi.first.wpilibj.AnalogInput
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.I2C
 import edu.wpi.first.wpilibj.Timer
@@ -15,10 +16,10 @@ import org.sert2521.bunnybots.RIGHT_REAR_MOTOR
 import org.sert2521.bunnybots.WHEEL_DIAMETER
 import org.sert2521.bunnybots.util.Telemetry
 import org.sertain.hardware.Talon
-import org.sertain.hardware.autoBrake
 import org.sertain.hardware.getEncoderPosition
 import org.sertain.hardware.invert
 import org.sertain.hardware.plus
+import org.sertain.hardware.setBrake
 import org.sertain.hardware.setEncoderPosition
 import org.sertain.hardware.setPIDF
 import org.sertain.hardware.setPercent
@@ -44,10 +45,12 @@ object Drivetrain : Subsystem("Drivetrain") {
     val ahrs = AHRS(I2C.Port.kMXP)
 
     private fun ticksToFeet(ticks: Int) =
-        ticks.toDouble() / ENCODER_TICKS_PER_REVOLUTION * WHEEL_DIAMETER * Math.PI / 12.0
+            ticks.toDouble() / ENCODER_TICKS_PER_REVOLUTION * WHEEL_DIAMETER * Math.PI / 12.0
 
     private fun feetToTicks(feet: Double) =
-        feet * 12.0 / Math.PI / WHEEL_DIAMETER * ENCODER_TICKS_PER_REVOLUTION
+            feet * 12.0 / Math.PI / WHEEL_DIAMETER * ENCODER_TICKS_PER_REVOLUTION
+
+    private val lidar = AnalogInput(0)
 
     private val leftPosition get() = leftDrive.getEncoderPosition()
     private val rightPosition get() = rightDrive.getEncoderPosition()
@@ -55,9 +58,9 @@ object Drivetrain : Subsystem("Drivetrain") {
     private val leftDistance get() = ticksToFeet(leftPosition)
     private val rightDistance get() = ticksToFeet(rightPosition)
 
-    private val leftDrive = Talon(LEFT_FRONT_MOTOR).autoBrake() + Talon(LEFT_REAR_MOTOR).autoBrake()
+    private val leftDrive = Talon(LEFT_FRONT_MOTOR).setBrake() + Talon(LEFT_REAR_MOTOR).setBrake()
     private val rightDrive =
-        Talon(RIGHT_FRONT_MOTOR).autoBrake().invert() + Talon(RIGHT_REAR_MOTOR).autoBrake().invert()
+            Talon(RIGHT_FRONT_MOTOR).setBrake().invert() + Talon(RIGHT_REAR_MOTOR).setBrake().invert()
     private val drive = DifferentialDrive(leftDrive, rightDrive)
 
     init {
@@ -71,10 +74,11 @@ object Drivetrain : Subsystem("Drivetrain") {
         rightDrive.configAllowableClosedloopError(0, 0, 0)
 
         // (% output / 1023.0) / speed @ % output
-        val kF = (0.48 * 1023.0) / 9000.0
+//        val kF = (0.72 * 1023.0) / (3534.0 * 10)
+        val kF = 0.0
 
-        // (max % output @ 1 rev / 1023) / encoder ticks per rev
-        val kP = (0.4 * 1023.0) / 8192.0
+        // (max % output / 1023) / encoder ticks per rev
+        val kP = (0.5 * 1023.0) / 4096.0
 
         leftDrive.setPIDF(kP = kP, kF = kF)
         rightDrive.setPIDF(kP = kP, kF = kF)
@@ -82,6 +86,9 @@ object Drivetrain : Subsystem("Drivetrain") {
         telemetry.add("Left Encoder") { leftPosition }
         telemetry.add("Right Encoder") { rightPosition }
         telemetry.add("Gyro") { ahrs.angle }
+        telemetry.add("LiDAR Value") { lidar.value }
+        telemetry.add("LiDAR Voltage") { lidar.voltage }
+        telemetry.add("LiDAR Avg Voltage") { lidar.averageVoltage }
 
         drive.isSafetyEnabled = false
 
@@ -101,7 +108,7 @@ object Drivetrain : Subsystem("Drivetrain") {
     fun arcade(speed: Double, rotation: Double) = drive.arcadeDrive(speed, rotation)
 
     fun curvature(speed: Double, rotation: Double, quickTurn: Boolean) =
-        drive.curvatureDrive(speed, rotation, quickTurn)
+            drive.curvatureDrive(speed, rotation, quickTurn)
 
     suspend fun driveDistance(distance: Double, time: Double, suspend: Boolean = true) {
         leftDrive.selectProfileSlot(0, 0)
@@ -139,7 +146,7 @@ object Drivetrain : Subsystem("Drivetrain") {
 
     suspend fun driveAlongPath(path: Path2D, extraTime: Double = 0.0) {
         println("Driving along path ${path.name}, duration: ${path.durationWithSpeed}," +
-                    "travel direction: ${path.robotDirection}, mirrored: ${path.isMirrored}")
+                        "travel direction: ${path.robotDirection}, mirrored: ${path.isMirrored}")
 
         path.resetDistances()
         reset()
@@ -202,7 +209,7 @@ object Drivetrain : Subsystem("Drivetrain") {
                 val velocityDelta = (leftVelocity - rightVelocity) * TURNING_FEED_FORWARD
 
                 pathAngleEntry.setDouble(pathAngle)
-                angleErrorEntry.setDouble(pathAngle)
+                angleErrorEntry.setDouble(angleError)
                 leftPositionErrorEntry.setDouble(ticksToFeet(leftDrive.getClosedLoopError(0)))
                 rightPositionErrorEntry.setDouble(ticksToFeet(rightDrive.getClosedLoopError(0)))
                 leftVelocityErrorEntry.setDouble(ticksToFeet(round(leftVelocityError * 10).toInt()))
@@ -214,15 +221,12 @@ object Drivetrain : Subsystem("Drivetrain") {
                 rightPercentage.setDouble(rightDrive.motorOutputPercent)
 
                 val leftFeedForward = leftVelocity * LEFT_FEED_FORWARD_COEFFICIENT +
-                    (LEFT_FEED_FORWARD_OFFSET * signum(leftVelocity)) + velocityDelta
+                        (LEFT_FEED_FORWARD_OFFSET * signum(leftVelocity)) + velocityDelta
 
                 val rightFeedForward = rightVelocity * RIGHT_FEED_FORWARD_COEFFICIENT +
-                    (RIGHT_FEED_FORWARD_OFFSET * signum(rightVelocity)) - velocityDelta
+                        (RIGHT_FEED_FORWARD_OFFSET * signum(rightVelocity)) - velocityDelta
 
-                drivePosition(feetToTicks(leftDistance),
-                              feetToTicks(rightDistance),
-                              leftFeedForward,
-                              rightFeedForward)
+                drivePosition(feetToTicks(leftDistance), feetToTicks(rightDistance))
 
                 lastSet.setDouble(lastSetTime - timer.get())
                 lastSetTime = timer.get()
@@ -234,6 +238,7 @@ object Drivetrain : Subsystem("Drivetrain") {
                     DriverStation.reportWarning("Right motor is saturated", false)
                 }
 
+                println("$t >= ${path.durationWithSpeed}")
                 finished = t >= path.durationWithSpeed + extraTime
 
                 prevTime = t
@@ -251,10 +256,10 @@ object Drivetrain : Subsystem("Drivetrain") {
     }
 
     fun drivePosition(
-        leftPosition: Double,
-        rightPosition: Double,
-        leftFeedForward: Double? = null,
-        rightFeedForward: Double? = null
+            leftPosition: Double,
+            rightPosition: Double,
+            leftFeedForward: Double? = null,
+            rightFeedForward: Double? = null
     ) {
         leftDrive.setPosition(leftPosition, leftFeedForward)
         rightDrive.setPosition(rightPosition, rightFeedForward)
