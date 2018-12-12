@@ -1,5 +1,6 @@
 package org.sert2521.bunnybots
 
+import edu.wpi.first.wpilibj.CameraServer
 import org.sert2521.bunnybots.arm.Arm
 import org.sert2521.bunnybots.autonomous.AutoChooser
 import org.sert2521.bunnybots.autonomous.colorPin
@@ -31,8 +32,14 @@ object Robot : RobotProgram {
         Dropper
         Intake
 
-//        CameraServer.getInstance().startAutomaticCapture(0)
-//        CameraServer.getInstance().startAutomaticCapture(1)
+        CameraServer.getInstance().startAutomaticCapture(0).apply {
+            setFPS(15)
+            setResolution(320, 240)
+        }
+        CameraServer.getInstance().startAutomaticCapture(1).apply {
+            setFPS(15)
+            setResolution(320, 240)
+        }
 
         UDPServer.start()
 
