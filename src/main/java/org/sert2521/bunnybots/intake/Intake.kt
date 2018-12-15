@@ -11,5 +11,7 @@ object Intake : Subsystem("Intake") {
 
     fun run(speed: Double = INTAKE_SPEED) = intakeMotor.setPercent(speed)
 
+    fun reverse(speed: Double = INTAKE_REVERSE_SPEED) = intakeMotor.setPercent(speed)
+
     fun stop() = intakeMotor.stop()
 }
