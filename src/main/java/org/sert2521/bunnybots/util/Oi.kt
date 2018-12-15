@@ -9,6 +9,7 @@ import org.sert2521.bunnybots.SECONDARY_STICK_PORT
 import org.sert2521.bunnybots.arm.ArmPose
 import org.sert2521.bunnybots.arm.animateArmToPose
 import org.sert2521.bunnybots.dropper.dropBunny
+import org.sert2521.bunnybots.intake.reverseIntake
 import org.sert2521.bunnybots.intake.runIntake
 import org.sert2521.bunnybots.outtake.openFlap
 import org.sert2521.bunnybots.outtake.runOuttake
@@ -26,12 +27,15 @@ val driveSpeedScalar get() = Preferences.getInstance().getDouble("drive_speed_sc
 
 fun initControls() {
     primaryJoystick.createMappings {
-        buttonHold(1) { runIntake() }
-        buttonHold(2) { runOuttake() }
-        buttonPress(3) { dropBunny() }
-        buttonPress(4) { openFlap() }
-        buttonPress(12) { animateArmToPose(ArmPose.TOP) }
-        buttonPress(11) { animateArmToPose(ArmPose.BOTTOM) }
+        buttonPress(3) { animateArmToPose(ArmPose.TOP) }
+        buttonPress(4) { animateArmToPose(ArmPose.BOTTOM) }
+    }
+
+    secondaryJoystick.createMappings {
+        buttonToggle(12) { runIntake() }
+        buttonHold(11) { reverseIntake() }
+        buttonPress(3) { runOuttake() }
+        buttonPress(7) { dropBunny() }
     }
 }
 
