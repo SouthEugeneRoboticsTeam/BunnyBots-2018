@@ -17,8 +17,8 @@ suspend fun teleopDrive() = use(Drivetrain) {
     }
 }
 
-suspend fun followPath(path: Path2D) = use(Drivetrain) {
-    Drivetrain.driveAlongPath(path)
+suspend fun followPath(path: Path2D, extraTime: Double = 0.0, useLidar: Boolean = false) = use(Drivetrain) {
+    Drivetrain.driveAlongPath(path, extraTime, useLidar)
 }
 
 suspend fun driveParallelToCrates() = use(Drivetrain) {

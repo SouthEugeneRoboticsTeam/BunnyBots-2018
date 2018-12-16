@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.I2C
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.drive.DifferentialDrive
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
+import kotlinx.coroutines.launch
 import org.sert2521.bunnybots.ENCODER_TICKS_PER_REVOLUTION
 import org.sert2521.bunnybots.LEFT_FRONT_MOTOR
 import org.sert2521.bunnybots.LEFT_REAR_MOTOR
@@ -25,6 +25,7 @@ import org.sertain.hardware.setPIDF
 import org.sertain.hardware.setPercent
 import org.sertain.hardware.setPosition
 import org.sertain.hardware.setSelectedSensor
+import org.team2471.frc.lib.coroutines.MeanlibScope
 import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.coroutines.suspendUntil
 import org.team2471.frc.lib.framework.Subsystem
@@ -52,6 +53,11 @@ object Drivetrain : Subsystem("Drivetrain") {
 
     private val lidar = AnalogInput(0)
 
+    private val lidarList = mutableListOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+    // Get LiDAR distance in inches
+    private val lidarDistance get() = ((52.993 / Math.pow(lidarList.toList().average(), 0.158)) - 41.789) / 2.54
+
     private val leftPosition get() = leftDrive.getEncoderPosition()
     private val rightPosition get() = rightDrive.getEncoderPosition()
 
@@ -73,12 +79,10 @@ object Drivetrain : Subsystem("Drivetrain") {
         leftDrive.configAllowableClosedloopError(0, 0, 0)
         rightDrive.configAllowableClosedloopError(0, 0, 0)
 
-        // (% output / 1023.0) / speed @ % output
-//        val kF = (0.72 * 1023.0) / (3534.0 * 10)
         val kF = 0.0
 
         // (max % output / 1023) / encoder ticks per rev
-        val kP = (0.5 * 1023.0) / 4096.0
+        val kP = (0.75 * 1023.0) / 4096.0
 
         leftDrive.setPIDF(kP = kP, kF = kF)
         rightDrive.setPIDF(kP = kP, kF = kF)
@@ -86,13 +90,19 @@ object Drivetrain : Subsystem("Drivetrain") {
         telemetry.add("Left Encoder") { leftPosition }
         telemetry.add("Right Encoder") { rightPosition }
         telemetry.add("Gyro") { ahrs.angle }
-        telemetry.add("LiDAR Value") { lidar.value }
-        telemetry.add("LiDAR Voltage") { lidar.voltage }
-        telemetry.add("LiDAR Avg Voltage") { lidar.averageVoltage }
+        telemetry.add("LiDAR Distance (in)") { lidarDistance }
 
         drive.isSafetyEnabled = false
 
         reset()
+
+        MeanlibScope.launch {
+            periodic(0.05) {
+                val lidarValue: Double? = lidar.averageVoltage
+                lidarList.removeAt(0)
+                lidarList.add(lidarValue?.coerceAtLeast(0.1) ?: 0.1)
+            }
+        }
     }
 
     fun reset() {
@@ -144,7 +154,7 @@ object Drivetrain : Subsystem("Drivetrain") {
         }
     }
 
-    suspend fun driveAlongPath(path: Path2D, extraTime: Double = 0.0) {
+    suspend fun driveAlongPath(path: Path2D, extraTime: Double = 0.0, useLidar: Boolean = false) {
         println("Driving along path ${path.name}, duration: ${path.durationWithSpeed}," +
                         "travel direction: ${path.robotDirection}, mirrored: ${path.isMirrored}")
 
@@ -175,7 +185,7 @@ object Drivetrain : Subsystem("Drivetrain") {
 
         val timer = Timer().apply { start() }
 
-        var angleErrorAccumulator = 0.0
+        var accumulator = 0.0
         var finished: Boolean
 
         var lastSetTime = timer.get()
@@ -189,16 +199,24 @@ object Drivetrain : Subsystem("Drivetrain") {
                 val pathAngle = toDegrees(Vector2.angle(path.getTangent(t)))
                 val angleError = pathAngle - windRelativeAngles(pathAngle, gyroAngle)
 
-                angleErrorAccumulator = angleErrorAccumulator * GYRO_CORRECTION_I_DECAY + angleError
+                val lidarError = (lidarDistance - LIDAR_SETPOINT) * -1
 
-                val gyroCorrection = if (SmartDashboard.getBoolean("Use Gyro", true)) {
-                    angleError * GYRO_CORRECTION_P + angleErrorAccumulator * GYRO_CORRECTION_I
+                println(lidarError)
+
+                val correction = if (useLidar) {
+                    if (path.getLeftDistance(t) > 2.5) {
+                        accumulator = accumulator * LIDAR_CORRECTION_I_DECAY + lidarError
+                        lidarError * LIDAR_CORRECTION_P + accumulator * LIDAR_CORRECTION_I
+                    } else {
+                        0.0
+                    }
                 } else {
-                    0.0
+                    accumulator = accumulator * GYRO_CORRECTION_I_DECAY + angleError
+                    angleError * GYRO_CORRECTION_P + accumulator * GYRO_CORRECTION_I
                 }
 
-                val leftDistance = path.getLeftDistance(t) + gyroCorrection
-                val rightDistance = path.getRightDistance(t) - gyroCorrection
+                val leftDistance = path.getLeftDistance(t) + correction
+                val rightDistance = path.getRightDistance(t) - correction
 
                 val leftVelocity = (leftDistance - prevLeftDistance) / dt
                 val rightVelocity = (rightDistance - prevRightDistance) / dt
@@ -216,7 +234,7 @@ object Drivetrain : Subsystem("Drivetrain") {
                 rightVelocityErrorEntry.setDouble(ticksToFeet(round(rightVelocityError * 10).toInt()))
                 leftPositionEntry.setDouble(leftDistance)
                 rightPositionEntry.setDouble(rightDistance)
-                gyroCorrectionEntry.setDouble(gyroCorrection)
+                gyroCorrectionEntry.setDouble(correction)
                 leftPercentage.setDouble(leftDrive.motorOutputPercent)
                 rightPercentage.setDouble(rightDrive.motorOutputPercent)
 
@@ -226,7 +244,7 @@ object Drivetrain : Subsystem("Drivetrain") {
                 val rightFeedForward = rightVelocity * RIGHT_FEED_FORWARD_COEFFICIENT +
                         (RIGHT_FEED_FORWARD_OFFSET * signum(rightVelocity)) - velocityDelta
 
-                drivePosition(feetToTicks(leftDistance), feetToTicks(rightDistance))
+                drivePosition(feetToTicks(leftDistance), feetToTicks(rightDistance), leftFeedForward, rightFeedForward)
 
                 lastSet.setDouble(lastSetTime - timer.get())
                 lastSetTime = timer.get()
@@ -238,7 +256,7 @@ object Drivetrain : Subsystem("Drivetrain") {
                     DriverStation.reportWarning("Right motor is saturated", false)
                 }
 
-                println("$t >= ${path.durationWithSpeed}")
+//                println("$t >= ${path.durationWithSpeed}")
                 finished = t >= path.durationWithSpeed + extraTime
 
                 prevTime = t
