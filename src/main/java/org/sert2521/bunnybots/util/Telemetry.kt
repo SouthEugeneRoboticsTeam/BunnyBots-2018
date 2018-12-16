@@ -39,7 +39,7 @@ class Telemetry {
 
     init {
         TelemetryScope.launch {
-            periodic(period = 0.1) {
+            periodic(period = 0.1, watchOverrun = false) {
                 tick()
             }
         }
