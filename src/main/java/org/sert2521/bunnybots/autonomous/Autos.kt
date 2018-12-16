@@ -72,19 +72,17 @@ suspend fun endToCratesPath() {
     val path = Path2D()
     path.autonomous = auto
 
-    println("${Lidar.xOffset ?: 0.0}, ${Lidar.yOffset ?: 0.0}, ${Lidar.theta ?: 0.0}")
-    println("${Lidar.xOffsetAverage}, ${Lidar.yOffsetAverage}, ${Lidar.theta ?: 0.0}")
-
     val angle = Lidar.theta ?: 0.0
     val xOffset = 25.5 / 12.0
     val yOffset = 20.0 / 12.0
 
+    // Calculate tangents given angle
     val magnitude = 4.5
     val tangentX = cos(toRadians(angle + 90.0)) * magnitude * -1
     val tangentY = sin(toRadians(angle + 90.0)) * magnitude
 
-    println("${-1 * (Lidar.xOffset ?: 0.0) + xOffset}, ${(Lidar.yOffset ?: 0.0) - yOffset}, $tangentX, $tangentY")
-
+    // Rotate coordinate plane to align with robot angle
+    // See: https://en.wikipedia.org/wiki/Rotation_of_axes
     val endpoint = Vector2(-1 * (Lidar.xOffset ?: 0.0) + xOffset, (Lidar.yOffset ?: 0.0) - yOffset).apply {
         rotateRadians(toRadians(-angle))
     }
@@ -92,12 +90,11 @@ suspend fun endToCratesPath() {
     path.addPointAndTangent(0.0, 0.0, 0.0, 1.25 * 3)
     path.addPointAndTangent(endpoint.x, endpoint.y, tangentX, tangentY)
 
+    // Use linear ease line, e.g. time is directly proportional to % path completed
     path.addEasePoint(0.0, 0.0)
     path.addEasePoint(1.0, 1.0)
 
     path.duration = 2.0
-
-    path.toJsonString()
 
     try {
         followPath(path, 0.25)
