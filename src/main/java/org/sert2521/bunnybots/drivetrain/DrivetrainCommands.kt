@@ -12,8 +12,7 @@ import org.team2471.frc.lib.motion_profiling.Path2D
  */
 suspend fun teleopDrive() = use(Drivetrain) {
     periodic {
-        Drivetrain.arcade(driveSpeedScalar * primaryJoystick.x,
-                          -driveSpeedScalar * primaryJoystick.y)
+        Drivetrain.arcade(driveSpeedScalar * primaryJoystick.x, -driveSpeedScalar * primaryJoystick.y)
     }
 }
 

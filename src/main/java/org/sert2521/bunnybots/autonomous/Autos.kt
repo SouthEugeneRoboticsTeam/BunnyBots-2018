@@ -76,8 +76,8 @@ suspend fun endToCratesPath() {
     println("${Lidar.xOffsetAverage}, ${Lidar.yOffsetAverage}, ${Lidar.theta ?: 0.0}")
 
     val angle = Lidar.theta ?: 0.0
-    val xOffset = 25.5/12.0
-    val yOffset = 20.0/12.0
+    val xOffset = 25.5 / 12.0
+    val yOffset = 20.0 / 12.0
 
     val magnitude = 4.5
     val tangentX = cos(toRadians(angle + 90.0)) * magnitude * -1
