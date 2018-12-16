@@ -11,7 +11,7 @@ import kotlin.coroutines.CoroutineContext
 
 object TelemetryScope : CoroutineScope {
     override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Default
+        get() = Dispatchers.IO
 }
 
 class Telemetry {
@@ -29,7 +29,7 @@ class Telemetry {
         table = NetworkTableInstance.getDefault().getTable(subsystem.name)!!
     }
 
-    private fun tick() = bindings.iterator().forEach { put(it.name, it.body()) }
+    private fun tick() = bindings.toList().forEach { put(it.name, it.body()) }
 
     fun add(name: String, body: () -> Any) = bindings.add(Binding(name, body))
 
@@ -39,7 +39,7 @@ class Telemetry {
 
     init {
         TelemetryScope.launch {
-            periodic(period = 0.1) {
+            periodic(period = 0.1, watchOverrun = false) {
                 tick()
             }
         }

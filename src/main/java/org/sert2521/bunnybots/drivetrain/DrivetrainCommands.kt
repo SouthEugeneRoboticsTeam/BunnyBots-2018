@@ -12,13 +12,12 @@ import org.team2471.frc.lib.motion_profiling.Path2D
  */
 suspend fun teleopDrive() = use(Drivetrain) {
     periodic {
-        Drivetrain.arcade(driveSpeedScalar * primaryJoystick.x,
-                          -driveSpeedScalar * primaryJoystick.y)
+        Drivetrain.arcade(driveSpeedScalar * primaryJoystick.x, -driveSpeedScalar * primaryJoystick.y)
     }
 }
 
-suspend fun followPath(path: Path2D) = use(Drivetrain) {
-    Drivetrain.driveAlongPath(path)
+suspend fun followPath(path: Path2D, extraTime: Double = 0.0, useLidar: Boolean = false) = use(Drivetrain) {
+    Drivetrain.driveAlongPath(path, extraTime, useLidar)
 }
 
 suspend fun driveParallelToCrates() = use(Drivetrain) {
