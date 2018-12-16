@@ -9,6 +9,15 @@ object Lidar {
     var xOffset: Double? = null
     var yOffset: Double? = null
     var theta: Double? = null
+
+    var xOffsets = mutableListOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    val xOffsetAverage get() = xOffsets.average()
+
+    var yOffsets = mutableListOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    val yOffsetAverage get() = yOffsets.average()
+
+    var thetas = mutableListOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    val thetaAverage get() = thetas.average()
 }
 
 data class LidarData(
