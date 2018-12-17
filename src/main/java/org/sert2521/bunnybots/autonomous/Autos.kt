@@ -1,6 +1,5 @@
 package org.sert2521.bunnybots.autonomous
 
-import edu.wpi.first.wpilibj.DigitalOutput
 import org.sert2521.bunnybots.drivetrain.Drivetrain
 import org.sert2521.bunnybots.drivetrain.followPath
 import org.sert2521.bunnybots.intake.Intake
@@ -15,12 +14,6 @@ import org.team2471.frc.lib.vector.Vector2
 import java.lang.Math.toRadians
 import kotlin.math.cos
 import kotlin.math.sin
-
-// LOW = keep red, HIGH = keep blue
-val colorPin = DigitalOutput(2)
-
-// LOW = let all in, HIGH = sort
-val sortPin = DigitalOutput(3)
 
 suspend fun runSelectedAuto() {
     Outtake.closeAuto()

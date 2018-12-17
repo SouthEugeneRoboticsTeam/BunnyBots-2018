@@ -1,5 +1,6 @@
 package org.sert2521.bunnybots.util
 
+import edu.wpi.first.wpilibj.DigitalOutput
 import edu.wpi.first.wpilibj.Joystick
 import edu.wpi.first.wpilibj.Preferences
 import org.sert2521.bunnybots.PRIMARY_STICK_PORT
@@ -12,6 +13,12 @@ import org.sert2521.bunnybots.intake.runIntake
 import org.sert2521.bunnybots.outtake.runOuttake
 import org.sert2521.bunnybots.outtake.toggleFlaps
 import org.team2471.frc.lib.framework.createMappings
+
+// LOW = keep red, HIGH = keep blue
+val colorPin = DigitalOutput(2)
+
+// LOW = let all in, HIGH = sort
+val sortPin = DigitalOutput(3)
 
 val primaryJoystick by lazy { Joystick(PRIMARY_STICK_PORT) }
 val secondaryJoystick by lazy { Joystick(SECONDARY_STICK_PORT) }

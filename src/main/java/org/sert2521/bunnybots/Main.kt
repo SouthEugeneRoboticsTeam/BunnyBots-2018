@@ -3,9 +3,7 @@ package org.sert2521.bunnybots
 import edu.wpi.first.wpilibj.DriverStation
 import org.sert2521.bunnybots.arm.Arm
 import org.sert2521.bunnybots.autonomous.AutoChooser
-import org.sert2521.bunnybots.autonomous.colorPin
 import org.sert2521.bunnybots.autonomous.runSelectedAuto
-import org.sert2521.bunnybots.autonomous.sortPin
 import org.sert2521.bunnybots.drivetrain.Drivetrain
 import org.sert2521.bunnybots.drivetrain.teleopDrive
 import org.sert2521.bunnybots.dropper.Dropper
@@ -14,9 +12,11 @@ import org.sert2521.bunnybots.intake.Intake
 import org.sert2521.bunnybots.outtake.Outtake
 import org.sert2521.bunnybots.util.JetsonMessage
 import org.sert2521.bunnybots.util.UDPServer
+import org.sert2521.bunnybots.util.colorPin
 import org.sert2521.bunnybots.util.initControls
 import org.sert2521.bunnybots.util.initPreferences
 import org.sert2521.bunnybots.util.logBuildInfo
+import org.sert2521.bunnybots.util.sortPin
 import org.team2471.frc.lib.framework.RobotProgram
 import org.team2471.frc.lib.framework.disable
 import org.team2471.frc.lib.framework.enable
