@@ -12,3 +12,13 @@ suspend fun runIntake() = use(Intake) {
         Intake.stop()
     }
 }
+
+suspend fun reverseIntake() = use(Intake) {
+    try {
+        periodic {
+            Intake.reverse()
+        }
+    } finally {
+        Intake.stop()
+    }
+}

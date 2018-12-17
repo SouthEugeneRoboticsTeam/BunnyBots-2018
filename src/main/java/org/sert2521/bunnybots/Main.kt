@@ -81,6 +81,7 @@ object Robot : RobotProgram {
 
         sortPin.set(true)
 
+        Outtake.openTeleop()
         teleopDrive()
     }
 

@@ -18,6 +18,6 @@ suspend fun runOuttake() = use(Outtake) {
     }
 }
 
-suspend fun openFlap() = use(Outtake) {
+suspend fun toggleFlaps() = use(Outtake) {
     Outtake.toggle()
 }
