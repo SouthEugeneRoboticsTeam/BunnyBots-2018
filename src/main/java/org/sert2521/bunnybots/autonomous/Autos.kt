@@ -23,23 +23,20 @@ val colorPin = DigitalOutput(2)
 val sortPin = DigitalOutput(3)
 
 suspend fun runSelectedAuto() {
-    println("Running selected auto")
     Outtake.closeAuto()
 
     try {
         parallel({ runIntake() }, {
-            println("In try")
             pickupPath()
             endToCratesPath()
             parallel({
-                         delay(1.35)
-                         Outtake.openAuto()
-                         runOuttake()
-                     }, {
-                println("Running ||")
-                         driveParallelToCrates()
-                         driveParallelToCrates(forward = false)
-                     })
+                delay(1.35)
+                Outtake.openAuto()
+                runOuttake()
+            }, {
+                driveParallelToCrates()
+                driveParallelToCrates(forward = false)
+            })
         })
     } finally {
         println("In finally")
