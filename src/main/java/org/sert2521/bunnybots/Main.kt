@@ -100,7 +100,7 @@ object Robot : RobotProgram {
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     initializeWpilib()
 
     runRobotProgram(Robot)
