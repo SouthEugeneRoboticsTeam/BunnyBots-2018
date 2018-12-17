@@ -2,8 +2,6 @@ package org.sert2521.bunnybots.util
 
 import edu.wpi.first.wpilibj.Joystick
 import edu.wpi.first.wpilibj.Preferences
-import edu.wpi.first.wpilibj.XboxController
-import org.sert2521.bunnybots.CONTROLLER_PORT
 import org.sert2521.bunnybots.PRIMARY_STICK_PORT
 import org.sert2521.bunnybots.SECONDARY_STICK_PORT
 import org.sert2521.bunnybots.arm.ArmPose
@@ -11,11 +9,9 @@ import org.sert2521.bunnybots.arm.animateArmToPose
 import org.sert2521.bunnybots.dropper.dropBunny
 import org.sert2521.bunnybots.intake.reverseIntake
 import org.sert2521.bunnybots.intake.runIntake
-import org.sert2521.bunnybots.outtake.openFlap
 import org.sert2521.bunnybots.outtake.runOuttake
 import org.team2471.frc.lib.framework.createMappings
 
-val controller by lazy { XboxController(CONTROLLER_PORT) }
 val primaryJoystick by lazy { Joystick(PRIMARY_STICK_PORT) }
 val secondaryJoystick by lazy { Joystick(SECONDARY_STICK_PORT) }
 
@@ -32,10 +28,10 @@ fun initControls() {
     }
 
     secondaryJoystick.createMappings {
-        buttonToggle(12) { runIntake() }
-        buttonHold(11) { reverseIntake() }
-        buttonPress(3) { runOuttake() }
         buttonPress(7) { dropBunny() }
+        buttonToggle(12) { runIntake() }
+        buttonHold(3) { runOuttake() }
+        buttonHold(11) { reverseIntake() }
     }
 }
 
