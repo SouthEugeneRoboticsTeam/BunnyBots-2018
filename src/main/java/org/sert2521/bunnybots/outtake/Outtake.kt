@@ -15,6 +15,7 @@ object Outtake : Subsystem("Outtake") {
     private val autoServo = Servo(OUTTAKE_AUTO_SERVO)
 
     var teleopOpen = false
+    var autoOpen = false
 
     fun run(speed: Double = OUTTAKE_BELT_SPEED) = beltMotor.setPercent(abs(speed) * if (teleopOpen) -1 else 1)
 
@@ -22,25 +23,35 @@ object Outtake : Subsystem("Outtake") {
 
     fun toggle() = if (teleopOpen) openAuto() else openTeleop()
 
-    fun openAuto() {
-        teleopOpen = false
+    fun toggleTeleop() = if (teleopOpen) closeTeleop() else openTeleop(false)
 
-        teleopServo.set(TELEOP_CLOSED_POSITION)
+    fun toggleAuto() = if (autoOpen) closeAuto() else openAuto(false)
+
+    fun openAuto(closeOther: Boolean = true) {
+        autoOpen = true
+
         autoServo.set(AUTO_OPEN_POSITION)
+
+        if (closeOther) closeTeleop()
     }
 
     fun closeAuto() {
+        autoOpen = false
+
         autoServo.set(AUTO_CLOSED_POSITION)
     }
 
-    fun openTeleop() {
+    fun openTeleop(closeOther: Boolean = true) {
         teleopOpen = true
 
         teleopServo.set(TELEOP_OPEN_POSITION)
-        autoServo.set(AUTO_CLOSED_POSITION)
+
+        if (closeOther) closeAuto()
     }
 
     fun closeTeleop() {
+        teleopOpen = false
+
         teleopServo.set(AUTO_CLOSED_POSITION)
     }
 }

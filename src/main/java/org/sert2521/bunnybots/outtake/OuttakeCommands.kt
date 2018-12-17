@@ -23,10 +23,6 @@ suspend fun runOuttake() = use(Outtake) {
     }
 }
 
-suspend fun openFlap() = use(Outtake) {
-    try {
-        Outtake.toggle()
-    } finally {
-        println("Done toggling")
-    }
+suspend fun toggleFlaps() = use(Outtake) {
+    Outtake.toggle()
 }
