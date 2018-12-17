@@ -35,6 +35,7 @@ import org.team2471.frc.lib.motion_profiling.Path2D
 import org.team2471.frc.lib.vector.Vector2
 import java.lang.Math.signum
 import java.lang.Math.toDegrees
+import kotlin.math.abs
 import kotlin.math.round
 
 /**
@@ -53,10 +54,18 @@ object Drivetrain : Subsystem("Drivetrain") {
 
     private val lidar = AnalogInput(0)
 
-    private val lidarList = mutableListOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    private val lidarList = mutableListOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
     // Get LiDAR distance in inches
-    private val lidarDistance get() = ((52.993 / Math.pow(lidarList.toList().average(), 0.158)) - 41.789) / 2.54
+    private val lidarDistance get() = ((52.993 / Math.pow(lidar.averageVoltage, 0.158)) - 41.789) / 2.54
+
+    private val averageLidarDistance: Double? get() {
+        return try {
+            ((52.993 / Math.pow(lidarList.toList().average(), 0.158)) - 41.789) / 2.54
+        } catch (exception: Exception) {
+            null
+        }
+    }
 
     private val leftPosition get() = leftDrive.getEncoderPosition()
     private val rightPosition get() = rightDrive.getEncoderPosition()
@@ -90,7 +99,7 @@ object Drivetrain : Subsystem("Drivetrain") {
         telemetry.add("Left Encoder") { leftPosition }
         telemetry.add("Right Encoder") { rightPosition }
         telemetry.add("Gyro") { ahrs.angle }
-        telemetry.add("LiDAR Distance (in)") { lidarDistance }
+        telemetry.add("LiDAR Distance (in)") { averageLidarDistance ?: 0.0 }
 
         drive.isSafetyEnabled = false
 
@@ -154,7 +163,7 @@ object Drivetrain : Subsystem("Drivetrain") {
         }
     }
 
-    suspend fun driveAlongPath(path: Path2D, extraTime: Double = 0.0, useLidar: Boolean = false) {
+    suspend fun driveAlongPath(path: Path2D, extraTime: Double = 0.0, useLidar: Boolean = false, forward: Boolean = true) {
         println("Driving along path ${path.name}, duration: ${path.durationWithSpeed}," +
                         "travel direction: ${path.robotDirection}, mirrored: ${path.isMirrored}")
 
@@ -185,6 +194,7 @@ object Drivetrain : Subsystem("Drivetrain") {
 
         val timer = Timer().apply { start() }
 
+        var prevLidarDistance: Double? = null
         var accumulator = 0.0
         var finished: Boolean
 
@@ -199,12 +209,20 @@ object Drivetrain : Subsystem("Drivetrain") {
                 val pathAngle = toDegrees(Vector2.angle(path.getTangent(t)))
                 val angleError = pathAngle - windRelativeAngles(pathAngle, gyroAngle)
 
-                val lidarError = (lidarDistance - LIDAR_SETPOINT) * -1
-
-                println(lidarError)
-
                 val correction = if (useLidar) {
-                    if (path.getLeftDistance(t) > 2.5) {
+                    // Ensure we've travelled far enough for LiDAR to work
+                    if (leftDistance > 2.25 || (leftDistance > 0.75 && !forward)) {
+                        // LiDAR will jump when we've reached the end of the crates, so stop then
+                        val jump = abs(lidarDistance) - abs(prevLidarDistance ?: lidarDistance)
+                        if (jump > 5.0) exitPeriodic()
+
+                        val lidarError = (if (averageLidarDistance != null) {
+                            prevLidarDistance = averageLidarDistance ?: 0.0
+                            averageLidarDistance ?: 0.0
+                        } else {
+                            prevLidarDistance ?: 0.0
+                        } - LIDAR_SETPOINT) * -1
+
                         accumulator = accumulator * LIDAR_CORRECTION_I_DECAY + lidarError
                         lidarError * LIDAR_CORRECTION_P + accumulator * LIDAR_CORRECTION_I
                     } else {
@@ -213,7 +231,7 @@ object Drivetrain : Subsystem("Drivetrain") {
                 } else {
                     accumulator = accumulator * GYRO_CORRECTION_I_DECAY + angleError
                     angleError * GYRO_CORRECTION_P + accumulator * GYRO_CORRECTION_I
-                }
+                } * if (forward) 1 else -1
 
                 val leftDistance = path.getLeftDistance(t) + correction
                 val rightDistance = path.getRightDistance(t) - correction
@@ -256,7 +274,6 @@ object Drivetrain : Subsystem("Drivetrain") {
                     DriverStation.reportWarning("Right motor is saturated", false)
                 }
 
-//                println("$t >= ${path.durationWithSpeed}")
                 finished = t >= path.durationWithSpeed + extraTime
 
                 prevTime = t

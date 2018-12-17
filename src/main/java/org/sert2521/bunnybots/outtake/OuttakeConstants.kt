@@ -6,4 +6,4 @@ internal const val TELEOP_OPEN_POSITION = 0.0
 internal const val TELEOP_CLOSED_POSITION = 0.0
 
 internal const val AUTO_OPEN_POSITION = 0.0
-internal const val AUTO_CLOSED_POSITION = 0.7
+internal const val AUTO_CLOSED_POSITION = 0.75

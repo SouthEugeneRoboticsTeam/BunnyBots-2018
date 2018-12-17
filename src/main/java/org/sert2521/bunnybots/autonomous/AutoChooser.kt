@@ -43,8 +43,7 @@ object AutoChooser {
                 println("New autonomi written to cache")
             } else {
                 autonomi = Autonomi()
-                DriverStation.reportWarning("Empty autonomi received from network tables",
-                                            false)
+                DriverStation.reportWarning("Empty autonomi received from network tables", false)
             }
         }
 

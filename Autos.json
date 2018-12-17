@@ -1090,17 +1090,17 @@
 								},
 								"m_prevSlopeMethod": "SLOPE_FLAT",
 								"m_prevTangent": {
-									"x": 0.8333333333333333,
+									"x": 1.0,
 									"y": 0.0
 								},
 								"m_timeAndValue": {
-									"x": 5.0,
+									"x": 6.0,
 									"y": 1.0
 								}
 							},
 							"m_nextSlopeMethod": "SLOPE_FLAT",
 							"m_nextTangent": {
-								"x": 1.6666666666666665,
+								"x": 2.0,
 								"y": 0.0
 							},
 							"m_prevAngleAndMagnitude": {
