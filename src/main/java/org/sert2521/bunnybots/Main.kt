@@ -1,5 +1,6 @@
 package org.sert2521.bunnybots
 
+import edu.wpi.first.wpilibj.CameraServer
 import edu.wpi.first.wpilibj.DriverStation
 import org.sert2521.bunnybots.arm.Arm
 import org.sert2521.bunnybots.autonomous.AutoChooser
@@ -33,14 +34,14 @@ object Robot : RobotProgram {
         Intake
         Outtake
 
-//        CameraServer.getInstance().startAutomaticCapture(0).apply {
-//            setFPS(15)
-//            setResolution(320, 240)
-//        }
-//        CameraServer.getInstance().startAutomaticCapture(1).apply {
-//            setFPS(15)
-//            setResolution(320, 240)
-//        }
+        CameraServer.getInstance().startAutomaticCapture(0).apply {
+            setFPS(15)
+            setResolution(320, 240)
+        }
+        CameraServer.getInstance().startAutomaticCapture(1).apply {
+            setFPS(15)
+            setResolution(320, 240)
+        }
 
         UDPServer.start()
 
