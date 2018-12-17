@@ -92,8 +92,6 @@ object Robot : RobotProgram {
         try {
             UDPServer.send(JetsonMessage.RUN)
 
-//        runSelectedAuto()
-//        parallel({ driveParallelToCrates() }, { runOuttake() })
             runSelectedAuto()
         } finally {
             UDPServer.send(JetsonMessage.STOP)

@@ -1,7 +1,9 @@
 package org.sert2521.bunnybots.autonomous
 
 import edu.wpi.first.wpilibj.DigitalOutput
+import org.sert2521.bunnybots.drivetrain.Drivetrain
 import org.sert2521.bunnybots.drivetrain.followPath
+import org.sert2521.bunnybots.intake.Intake
 import org.sert2521.bunnybots.intake.runIntake
 import org.sert2521.bunnybots.outtake.Outtake
 import org.sert2521.bunnybots.outtake.runOuttake
@@ -21,25 +23,32 @@ val colorPin = DigitalOutput(2)
 val sortPin = DigitalOutput(3)
 
 suspend fun runSelectedAuto() {
-    parallel({ runIntake() }, {
-        Outtake.closeAuto()
+    println("Running selected auto")
+    Outtake.closeAuto()
 
-        pickupPath()
-
-        println("Starting new auto")
-
-        println("Going from (0.0, 0.0, 0.0) to (${Lidar.xOffset ?: 0.0}, ${Lidar.yOffset ?: 0.0}, ${Lidar.theta ?: 0.0})")
-
-        endToCratesPath()
-        parallel({
-            delay(1.0)
-            Outtake.openAuto()
-            runOuttake()
-        }, {
-            driveParallelToCrates()
-            Outtake.closeAuto()
+    try {
+        parallel({ runIntake() }, {
+            println("In try")
+            pickupPath()
+            endToCratesPath()
+            parallel({
+                         delay(1.35)
+                         Outtake.openAuto()
+                         runOuttake()
+                     }, {
+                println("Running ||")
+                         driveParallelToCrates()
+                         driveParallelToCrates(forward = false)
+                     })
         })
-    })
+    } finally {
+        println("In finally")
+        Drivetrain.stop()
+        Outtake.stop()
+        Intake.stop()
+
+        Outtake.closeAuto()
+    }
 }
 
 suspend fun pickupPath() {
@@ -54,13 +63,18 @@ suspend fun pickupPath() {
     }
 }
 
-suspend fun driveParallelToCrates() {
+suspend fun driveParallelToCrates(forward: Boolean = true) {
     val auto = autonomi["BunnyBots"]
 
     val path = auto["Crates"]
+    path.robotDirection = if (forward) {
+        Path2D.RobotDirection.FORWARD
+    } else {
+        Path2D.RobotDirection.BACKWARD
+    }
 
     try {
-        followPath(path, useLidar = true)
+        followPath(path, useLidar = true, forward = forward)
     } finally {
         println("Done following path")
     }
@@ -73,7 +87,7 @@ suspend fun endToCratesPath() {
     path.autonomous = auto
 
     val angle = Lidar.theta ?: 0.0
-    val xOffset = 25.5 / 12.0
+    val xOffset = 29.0 / 12.0
     val yOffset = 20.0 / 12.0
 
     // Calculate tangents given angle
