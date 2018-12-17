@@ -39,7 +39,6 @@ suspend fun runSelectedAuto() {
             })
         })
     } finally {
-        println("In finally")
         Drivetrain.stop()
         Outtake.stop()
         Intake.stop()
