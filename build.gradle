@@ -11,7 +11,7 @@ ext.kotlinVersion = "1.3.10"
 ext.ktlintVersion = "0.19.0"
 ext.gsonVersion = "2.8.5"
 ext.sertainVersion = "622f045d6c932be25bf4b1c7212a616a9ca7473d"
-ext.meanlibVersion = "134050df62dd6d6bbed73a95ad65bbf04eafa97f"
+ext.meanlibVersion = "fbcf9370bc4ec3b60b6595fd06eb6e9dd9c9f289"
 
 check.dependsOn "ktlint"
 compileKotlin.dependsOn "versionTxt"
