@@ -2,7 +2,10 @@ package org.sert2521.bunnybots
 
 import edu.wpi.first.wpilibj.CameraServer
 import edu.wpi.first.wpilibj.DriverStation
+import kotlinx.coroutines.launch
 import org.sert2521.bunnybots.arm.Arm
+import org.sert2521.bunnybots.arm.ArmPose
+import org.sert2521.bunnybots.arm.animateArmToPose
 import org.sert2521.bunnybots.autonomous.AutoChooser
 import org.sert2521.bunnybots.autonomous.runSelectedAuto
 import org.sert2521.bunnybots.drivetrain.Drivetrain
@@ -18,6 +21,8 @@ import org.sert2521.bunnybots.util.initControls
 import org.sert2521.bunnybots.util.initPreferences
 import org.sert2521.bunnybots.util.logBuildInfo
 import org.sert2521.bunnybots.util.sortPin
+import org.team2471.frc.lib.coroutines.MeanlibScope
+import org.team2471.frc.lib.coroutines.periodic
 import org.team2471.frc.lib.framework.RobotProgram
 import org.team2471.frc.lib.framework.disable
 import org.team2471.frc.lib.framework.enable
@@ -43,7 +48,7 @@ object Robot : RobotProgram {
             setResolution(320, 240)
         }
 
-        UDPServer.start()
+//        UDPServer.start()
 
         initControls()
         initPreferences()
@@ -81,7 +86,7 @@ object Robot : RobotProgram {
         println("Entering teleop...")
 
         sortPin.set(true)
-
+        animateArmToPose(ArmPose.TOP)
         Outtake.openTeleop()
         teleopDrive()
     }

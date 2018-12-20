@@ -7,6 +7,8 @@ suspend fun animateArmToPose(pose: ArmPose) = use(Arm) {
     try {
         periodic {
 //            Arm.setPose(pose)
+            println("Running:")
+            println(Arm.position)
             if (Math.abs(Arm.position - pose.armPosition) < 40) exitPeriodic()
 
             println("${Arm.position}, ${pose.armPosition}")
