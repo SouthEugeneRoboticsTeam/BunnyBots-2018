@@ -133,5 +133,5 @@ task versionTxt()  {
 }
 
 wrapper {
-    gradleVersion = "4.10"
+    gradleVersion = "5.0"
 }

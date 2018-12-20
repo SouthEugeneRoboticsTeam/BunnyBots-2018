@@ -10,8 +10,8 @@ import org.sert2521.bunnybots.arm.animateArmToPose
 import org.sert2521.bunnybots.dropper.dropBunny
 import org.sert2521.bunnybots.intake.reverseIntake
 import org.sert2521.bunnybots.intake.runIntake
-import org.sert2521.bunnybots.outtake.runOuttake
-import org.sert2521.bunnybots.outtake.toggleFlaps
+import org.sert2521.bunnybots.outtake.runAutoOuttake
+import org.sert2521.bunnybots.outtake.runTeleopOuttake
 import org.team2471.frc.lib.framework.createMappings
 
 // LOW = keep red, HIGH = keep blue
@@ -31,10 +31,10 @@ fun initControls() {
     }
 
     secondaryJoystick.createMappings {
-        buttonPress(4) { toggleFlaps() }
         buttonPress(7) { dropBunny() }
         buttonToggle(12) { runIntake() }
-        buttonHold(3) { runOuttake() }
+        buttonHold(3) { runTeleopOuttake() }
+        buttonHold(4) { runAutoOuttake() }
         buttonHold(11) { reverseIntake() }
     }
 }

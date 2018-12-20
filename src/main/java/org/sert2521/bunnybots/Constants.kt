@@ -1,7 +1,6 @@
 package org.sert2521.bunnybots
 
 // Joysticks
-const val CONTROLLER_PORT = 0
 const val PRIMARY_STICK_PORT = 0
 const val SECONDARY_STICK_PORT = 1
 
