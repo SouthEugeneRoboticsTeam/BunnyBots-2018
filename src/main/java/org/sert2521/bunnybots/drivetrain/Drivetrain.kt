@@ -100,6 +100,7 @@ object Drivetrain : Subsystem("Drivetrain") {
         telemetry.add("Right Encoder") { rightPosition }
         telemetry.add("Gyro") { ahrs.angle }
         telemetry.add("LiDAR Distance (in)") { averageLidarDistance ?: 0.0 }
+        telemetry.add("LiDAR Distance (V)") { lidar.averageVoltage }
 
         drive.isSafetyEnabled = false
 
@@ -128,6 +129,12 @@ object Drivetrain : Subsystem("Drivetrain") {
 
     fun curvature(speed: Double, rotation: Double, quickTurn: Boolean) =
             drive.curvatureDrive(speed, rotation, quickTurn)
+
+    fun distanceFromLidar(): Double? = try {
+        ((52.993 / Math.pow(lidar.averageVoltage, 0.158)) - 41.789) / 2.54
+    } catch (exception: Exception) {
+        null
+    }
 
     suspend fun driveDistance(distance: Double, time: Double, suspend: Boolean = true) {
         leftDrive.selectProfileSlot(0, 0)
@@ -211,7 +218,13 @@ object Drivetrain : Subsystem("Drivetrain") {
 
                 val correction = if (useLidar) {
                     // Ensure we've travelled far enough for LiDAR to work
-                    if (leftDistance > 2.25 || (leftDistance > 0.75 && !forward)) {
+                    if (((leftDistance > 2.25 || averageLidarDistance ?: Double.POSITIVE_INFINITY < 10.0) && forward) || (leftDistance < -0.75 && !forward)) {
+                        if (prevLidarDistance == null) {
+                            lidarList.forEachIndexed { index, _ ->
+                                lidarList[index] = lidar.averageVoltage
+                            }
+                        }
+
                         // LiDAR will jump when we've reached the end of the crates, so stop then
                         val jump = abs(lidarDistance) - abs(prevLidarDistance ?: lidarDistance)
                         if (jump > 5.0) exitPeriodic()
@@ -232,6 +245,8 @@ object Drivetrain : Subsystem("Drivetrain") {
                     accumulator = accumulator * GYRO_CORRECTION_I_DECAY + angleError
                     angleError * GYRO_CORRECTION_P + accumulator * GYRO_CORRECTION_I
                 } * if (forward) 1 else -1
+
+                println("LiDAR: ${averageLidarDistance ?: 0.0}; Correction: $correction")
 
                 val leftDistance = path.getLeftDistance(t) + correction
                 val rightDistance = path.getRightDistance(t) - correction

@@ -11,16 +11,12 @@ import org.sert2521.bunnybots.dropper.Dropper
 import org.sert2521.bunnybots.dropper.resetDroppers
 import org.sert2521.bunnybots.intake.Intake
 import org.sert2521.bunnybots.outtake.Outtake
-import org.sert2521.bunnybots.util.JetsonMessage
-import org.sert2521.bunnybots.util.UDPServer
 import org.sert2521.bunnybots.util.colorPin
 import org.sert2521.bunnybots.util.initControls
 import org.sert2521.bunnybots.util.initPreferences
 import org.sert2521.bunnybots.util.logBuildInfo
 import org.sert2521.bunnybots.util.sortPin
 import org.team2471.frc.lib.framework.RobotProgram
-import org.team2471.frc.lib.framework.disable
-import org.team2471.frc.lib.framework.enable
 import org.team2471.frc.lib.framework.initializeWpilib
 import org.team2471.frc.lib.framework.runRobotProgram
 
@@ -34,47 +30,30 @@ object Robot : RobotProgram {
         Intake
         Outtake
 
-        CameraServer.getInstance().startAutomaticCapture(0).apply {
+        CameraServer.getInstance().startAutomaticCapture("Intake Stream", 0).apply {
             setFPS(15)
-            setResolution(320, 240)
         }
-        CameraServer.getInstance().startAutomaticCapture(1).apply {
+        CameraServer.getInstance().startAutomaticCapture("Outtake Stream", 1).apply {
             setFPS(15)
-            setResolution(320, 240)
         }
-
-        UDPServer.start()
 
         initControls()
         initPreferences()
         logBuildInfo()
     }
 
-    private fun enableSubsystems() {
+    override suspend fun enable() {
         colorPin.set(DriverStation.getInstance().alliance == DriverStation.Alliance.Red)
 
-        Drivetrain.enable()
-        Arm.enable()
-        Dropper.enable()
-        Intake.enable()
-        Outtake.enable()
-    }
-
-    private fun disableSubsystems() {
-        Drivetrain.disable()
-        Arm.disable()
-        Dropper.disable()
-        Intake.disable()
-        Outtake.disable()
-    }
-
-    override suspend fun enable() {
-        enableSubsystems()
+        Outtake.closeAuto()
+        Outtake.closeTeleop()
         resetDroppers()
     }
 
     override suspend fun disable() {
-        disableSubsystems()
+        Drivetrain.stop()
+        Outtake.stop()
+        Intake.stop()
     }
 
     override suspend fun teleop() {
@@ -82,6 +61,7 @@ object Robot : RobotProgram {
 
         sortPin.set(true)
 
+        disable()
         teleopDrive()
     }
 
@@ -90,13 +70,7 @@ object Robot : RobotProgram {
 
         sortPin.set(false)
 
-        try {
-            UDPServer.send(JetsonMessage.RUN)
-
-            runSelectedAuto()
-        } finally {
-            UDPServer.send(JetsonMessage.STOP)
-        }
+        runSelectedAuto()
     }
 }
 
