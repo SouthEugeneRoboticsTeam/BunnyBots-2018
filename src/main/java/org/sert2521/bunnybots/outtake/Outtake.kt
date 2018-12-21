@@ -21,7 +21,9 @@ object Outtake : Subsystem("Outtake") {
     var teleopOpen = false
     var autoOpen = false
 
-    fun run(speed: Double = OUTTAKE_BELT_SPEED) = beltMotor.setPercent(abs(speed) * if (teleopOpen) -1 else 1)
+    fun run(speed: Double = OUTTAKE_BELT_SPEED) {
+        beltMotor.setPercent(abs(speed) * if (teleopOpen) -1 else 1)
+    }
 
     fun stop() = beltMotor.stopMotor()
 

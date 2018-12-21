@@ -5,7 +5,7 @@ import org.sert2521.bunnybots.drivetrain.followPath
 import org.sert2521.bunnybots.intake.Intake
 import org.sert2521.bunnybots.intake.runIntake
 import org.sert2521.bunnybots.outtake.Outtake
-import org.sert2521.bunnybots.outtake.runOuttake
+import org.sert2521.bunnybots.outtake.runAutoOuttake
 import org.sert2521.bunnybots.util.Lidar
 import org.team2471.frc.lib.coroutines.delay
 import org.team2471.frc.lib.coroutines.parallel
@@ -21,11 +21,10 @@ suspend fun runSelectedAuto() {
     try {
         parallel({ runIntake() }, {
             pickupPath()
-            endToCratesPath()
+//            endToCratesPath()
             parallel({
-                delay(1.35)
-                Outtake.openAuto()
-                runOuttake()
+                delay(0.5)
+                runAutoOuttake()
             }, {
                 driveParallelToCrates()
                 driveParallelToCrates(forward = false)
@@ -35,8 +34,6 @@ suspend fun runSelectedAuto() {
         Drivetrain.stop()
         Outtake.stop()
         Intake.stop()
-
-        Outtake.closeAuto()
     }
 }
 

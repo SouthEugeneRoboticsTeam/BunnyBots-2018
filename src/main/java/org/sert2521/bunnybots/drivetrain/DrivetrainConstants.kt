@@ -4,11 +4,11 @@ internal const val GYRO_CORRECTION_P = 0.008
 internal const val GYRO_CORRECTION_I = 0.001
 internal const val GYRO_CORRECTION_I_DECAY = 1.0
 
-internal const val LIDAR_CORRECTION_P = 0.055
+internal const val LIDAR_CORRECTION_P = 0.075
 internal const val LIDAR_CORRECTION_I = 0.003
 internal const val LIDAR_CORRECTION_I_DECAY = 1.0
 
-internal const val LIDAR_SETPOINT = 7.0
+internal const val LIDAR_SETPOINT = 6.0
 
 internal const val LEFT_FEED_FORWARD_COEFFICIENT = 0.10
 internal const val LEFT_FEED_FORWARD_OFFSET = 0.02
