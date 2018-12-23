@@ -54,7 +54,7 @@ object Drivetrain : Subsystem("Drivetrain") {
 
     private val lidar = AnalogInput(0)
 
-    private val lidarList = mutableListOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    private val lidarList = MutableList(10) { 0.0 }
 
     // Get LiDAR distance in inches
     private val lidarDistance get() = ((52.993 / Math.pow(lidar.averageVoltage, 0.158)) - 41.789) / 2.54
